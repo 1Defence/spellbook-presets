@@ -11,6 +11,7 @@ public interface SpellbookPresetsConfig extends Config
 	//allows us to set the config on first-run, but not reset it to this value if the user sets the active presets to be empty.
 	String FIRST_RUN_ACTIVEPRESETS_STRING = "Preset 1\nPreset 2";
 	String FIRST_RUN_ACTIVEPRESETS_KEY = "setActivePresets";
+	enum SWAP_MODE { SWAP, INSERT}
 
 	@ConfigItem(
 			position = 0,
@@ -43,5 +44,16 @@ public interface SpellbookPresetsConfig extends Config
 	default boolean showAllIfEmpty()
 	{
 		return true;
+	}
+
+	@ConfigItem(
+			position = 3,
+			keyName = "spellMoveMode",
+			name = "Spell Move Mode",
+			description = "Insert spell (all spells shift forward), Swap spell (spell A swaps position with spell B)"
+	)
+	default SWAP_MODE spellMoveMode()
+	{
+		return SWAP_MODE.SWAP;
 	}
 }

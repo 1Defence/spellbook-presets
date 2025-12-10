@@ -81,6 +81,7 @@ import net.runelite.client.plugins.PluginDescriptor;
 import static com.example.SpellbookPresetsConfig.GROUP;
 import static com.example.SpellbookPresetsConfig.FIRST_RUN_ACTIVEPRESETS_KEY;
 import static com.example.SpellbookPresetsConfig.FIRST_RUN_ACTIVEPRESETS_STRING;
+import static com.example.SpellbookPresetsConfig.SWAP_MODE;
 
 @PluginDescriptor(
 		name = "Spellbook Presets",
@@ -165,6 +166,8 @@ public class SpellbookPresetsPlugin extends Plugin
 
 	private String currentPreset = "";
 
+	private SWAP_MODE swapMode;
+
 	@Getter(AccessLevel.PACKAGE)
 	private List<String> presets = new ArrayList<>();
 	private List<WidgetMenuOption> managedMenus = new ArrayList<>();
@@ -233,6 +236,7 @@ public class SpellbookPresetsPlugin extends Plugin
 	public void cacheConfigs(){
 		showAllIfEmpty = config.showAllIfEmpty();
 		presets = parsePresets();
+		swapMode = config.spellMoveMode();
 	}
 
 	//updates active presets when changed
@@ -248,6 +252,9 @@ public class SpellbookPresetsPlugin extends Plugin
 		}
 
 		switch (configChanged.getKey()){
+			case "spellMoveMode":
+				swapMode = config.spellMoveMode();
+				break;
 			case "showAllIfEmpty":
 				showAllIfEmpty = config.showAllIfEmpty();
 				clientThread.invokeLater(this::reinitializeSpellbook);
@@ -482,7 +489,7 @@ public class SpellbookPresetsPlugin extends Plugin
 		}
 	}
 
-	//Unchanged, matches SpellbookPlugin
+	//Slight changes to SpellbookPlugin, option to swap spell instead of inserting.
 	@Subscribe
 	public void onDraggingWidgetChanged(DraggingWidgetChanged event)
 	{
@@ -522,23 +529,29 @@ public class SpellbookPresetsPlugin extends Plugin
 
 			log.debug("Set {} to {}", client.getItemDefinition(spellbook.getIntValue(order[fromIdx])).getStringValue(ParamID.SPELL_NAME), toIdx);
 			setPosition(spellbookId, spellbook.getIntValue(order[fromIdx]), toIdx);
-			if (fromIdx < toIdx)
-			{
-				for (int i = fromIdx + 1; i <= toIdx; ++i)
-				{
-					log.debug("Set {} to {}", client.getItemDefinition(spellbook.getIntValue(order[i])).getStringValue(ParamID.SPELL_NAME), i - 1);
-					setPosition(spellbookId, spellbook.getIntValue(order[i]), i - 1);
-				}
-			}
-			else
-			{
-				for (int i = toIdx; i < fromIdx; ++i)
-				{
-					log.debug("Set {} to {}", client.getItemDefinition(spellbook.getIntValue(order[i])).getStringValue(ParamID.SPELL_NAME), i + 1);
-					setPosition(spellbookId, spellbook.getIntValue(order[i]), i + 1);
-				}
-			}
 
+			if(swapMode == SWAP_MODE.SWAP)
+			{
+				log.debug("Set {} to {}", client.getItemDefinition(spellbook.getIntValue(order[toIdx])).getStringValue(ParamID.SPELL_NAME), fromIdx);
+				setPosition(spellbookId, spellbook.getIntValue(order[toIdx]), fromIdx);
+			}else if(swapMode == SWAP_MODE.INSERT){
+				if (fromIdx < toIdx)
+				{
+					for (int i = fromIdx + 1; i <= toIdx; ++i)
+					{
+						log.debug("Set {} to {}", client.getItemDefinition(spellbook.getIntValue(order[i])).getStringValue(ParamID.SPELL_NAME), i - 1);
+						setPosition(spellbookId, spellbook.getIntValue(order[i]), i - 1);
+					}
+				}
+				else
+				{
+					for (int i = toIdx; i < fromIdx; ++i)
+					{
+						log.debug("Set {} to {}", client.getItemDefinition(spellbook.getIntValue(order[i])).getStringValue(ParamID.SPELL_NAME), i + 1);
+						setPosition(spellbookId, spellbook.getIntValue(order[i]), i + 1);
+					}
+				}
+			}
 			redrawSpellbook();
 		}
 	}
