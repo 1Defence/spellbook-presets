@@ -123,35 +123,27 @@ public class SpellbookPresetsPlugin extends Plugin
 	private static final String ENABLE = "Show preset";
 
 	//menu ops for the 3 client sizes for editing/saving a preset & hiding/showing a preset
-	private static final WidgetMenuOption FIXED_MAGIC_TAB_LOCK = new WidgetMenuOption(LOCK,
-			"", InterfaceID.Toplevel.STONE6);
-	private static final WidgetMenuOption FIXED_MAGIC_TAB_UNLOCK = new WidgetMenuOption(UNLOCK,
-			"", InterfaceID.Toplevel.STONE6);
+	private static int FIXED_MAGIC_TAB_ID = InterfaceID.Toplevel.STONE6;
+	private static int RESIZABLE_A_MAGIC_TABID = InterfaceID.ToplevelOsrsStretch.STONE6;
+	private static int RESIZABLE_B_MAGIC_TABID = InterfaceID.ToplevelPreEoc.STONE6;
 
-	private static final WidgetMenuOption FIXED_MAGIC_TAB_DISABLE = new WidgetMenuOption(DISABLE,
-			"", InterfaceID.Toplevel.STONE6);
-	private static final WidgetMenuOption FIXED_MAGIC_TAB_ENABLE = new WidgetMenuOption(ENABLE,
-			"", InterfaceID.Toplevel.STONE6);
+	/**Fixed**/
+	private static final WidgetMenuOption LOCK_MENU_FIXED = new WidgetMenuOption(LOCK, "", FIXED_MAGIC_TAB_ID);
+	private static final WidgetMenuOption UNLOCK_MENU_FIXED = new WidgetMenuOption(UNLOCK, "", FIXED_MAGIC_TAB_ID);
+	private static final WidgetMenuOption DISABLE_MENU_FIXED = new WidgetMenuOption(DISABLE, "", FIXED_MAGIC_TAB_ID);
+	private static final WidgetMenuOption ENABLE_MENU_FIXED = new WidgetMenuOption(ENABLE, "", FIXED_MAGIC_TAB_ID);
 
-	private static final WidgetMenuOption RESIZABLE_MAGIC_TAB_LOCK = new WidgetMenuOption(LOCK,
-			"", InterfaceID.ToplevelOsrsStretch.STONE6);
-	private static final WidgetMenuOption RESIZABLE_MAGIC_TAB_UNLOCK = new WidgetMenuOption(UNLOCK,
-			"", InterfaceID.ToplevelOsrsStretch.STONE6);
+	/**Resizable Top**/
+	private static final WidgetMenuOption LOCK_MENU_RESIZE_A = new WidgetMenuOption(LOCK, "", RESIZABLE_A_MAGIC_TABID);
+	private static final WidgetMenuOption UNLOCK_MENU_RESIZE_A = new WidgetMenuOption(UNLOCK, "", RESIZABLE_A_MAGIC_TABID);
+	private static final WidgetMenuOption DISABLE_MENU_RESIZE_A = new WidgetMenuOption(DISABLE, "", RESIZABLE_A_MAGIC_TABID);
+	private static final WidgetMenuOption ENABLE_MENU_RESIZE_A = new WidgetMenuOption(ENABLE, "", RESIZABLE_A_MAGIC_TABID);
 
-	private static final WidgetMenuOption RESIZABLE_MAGIC_TAB_DISABLE = new WidgetMenuOption(DISABLE,
-			"", InterfaceID.ToplevelOsrsStretch.STONE6);
-	private static final WidgetMenuOption RESIZABLE_MAGIC_TAB_ENABLE = new WidgetMenuOption(ENABLE,
-			"", InterfaceID.ToplevelOsrsStretch.STONE6);
-
-	private static final WidgetMenuOption RESIZABLE_BOTTOM_LINE_MAGIC_TAB_LOCK = new WidgetMenuOption(LOCK,
-			"", InterfaceID.ToplevelPreEoc.STONE6);
-	private static final WidgetMenuOption RESIZABLE_BOTTOM_LINE_MAGIC_TAB_UNLOCK = new WidgetMenuOption(UNLOCK,
-			"", InterfaceID.ToplevelPreEoc.STONE6);
-
-	private static final WidgetMenuOption RESIZABLE_BOTTOM_LINE_MAGIC_TAB_DISABLE = new WidgetMenuOption(DISABLE,
-			"", InterfaceID.ToplevelPreEoc.STONE6);
-	private static final WidgetMenuOption RESIZABLE_BOTTOM_LINE_MAGIC_TAB_ENABLE = new WidgetMenuOption(ENABLE,
-			"", InterfaceID.ToplevelPreEoc.STONE6);
+	/**Resizable Bottom**/
+	private static final WidgetMenuOption LOCK_MENU_RESIZE_B = new WidgetMenuOption(LOCK, "", RESIZABLE_B_MAGIC_TABID);
+	private static final WidgetMenuOption UNLOCK_MENU_RESIZE_B = new WidgetMenuOption(UNLOCK, "", RESIZABLE_B_MAGIC_TABID);
+	private static final WidgetMenuOption DISABLE_MENU_RESIZE_B = new WidgetMenuOption(DISABLE, "", RESIZABLE_B_MAGIC_TABID);
+	private static final WidgetMenuOption ENABLE_MENU_RESIZE_B = new WidgetMenuOption(ENABLE, "", RESIZABLE_B_MAGIC_TABID);
 
 
 	private final Pattern NEWLINESPLITTER = Pattern.compile("\n");
@@ -348,19 +340,21 @@ public class SpellbookPresetsPlugin extends Plugin
 	//slight changes to SpellbookPlugin, removes the extra static menus and the list of dynamic menus created in refreshReorderMenus
 	private void clearReoderMenus()
 	{
-		menuManager.removeManagedCustomMenu(FIXED_MAGIC_TAB_LOCK);
-		menuManager.removeManagedCustomMenu(RESIZABLE_MAGIC_TAB_LOCK);
-		menuManager.removeManagedCustomMenu(RESIZABLE_BOTTOM_LINE_MAGIC_TAB_LOCK);
-		menuManager.removeManagedCustomMenu(FIXED_MAGIC_TAB_UNLOCK);
-		menuManager.removeManagedCustomMenu(RESIZABLE_MAGIC_TAB_UNLOCK);
-		menuManager.removeManagedCustomMenu(RESIZABLE_BOTTOM_LINE_MAGIC_TAB_UNLOCK);
+		menuManager.removeManagedCustomMenu(LOCK_MENU_FIXED);
+		menuManager.removeManagedCustomMenu(LOCK_MENU_RESIZE_A);
+		menuManager.removeManagedCustomMenu(LOCK_MENU_RESIZE_B);
 
-		menuManager.removeManagedCustomMenu(FIXED_MAGIC_TAB_DISABLE);
-		menuManager.removeManagedCustomMenu(RESIZABLE_MAGIC_TAB_DISABLE);
-		menuManager.removeManagedCustomMenu(RESIZABLE_BOTTOM_LINE_MAGIC_TAB_DISABLE);
-		menuManager.removeManagedCustomMenu(FIXED_MAGIC_TAB_ENABLE);
-		menuManager.removeManagedCustomMenu(RESIZABLE_MAGIC_TAB_ENABLE);
-		menuManager.removeManagedCustomMenu(RESIZABLE_BOTTOM_LINE_MAGIC_TAB_ENABLE);
+		menuManager.removeManagedCustomMenu(UNLOCK_MENU_FIXED);
+		menuManager.removeManagedCustomMenu(UNLOCK_MENU_RESIZE_A);
+		menuManager.removeManagedCustomMenu(UNLOCK_MENU_RESIZE_B);
+
+		menuManager.removeManagedCustomMenu(DISABLE_MENU_FIXED);
+		menuManager.removeManagedCustomMenu(DISABLE_MENU_RESIZE_A);
+		menuManager.removeManagedCustomMenu(DISABLE_MENU_RESIZE_B);
+
+		menuManager.removeManagedCustomMenu(ENABLE_MENU_FIXED);
+		menuManager.removeManagedCustomMenu(ENABLE_MENU_RESIZE_A);
+		menuManager.removeManagedCustomMenu(ENABLE_MENU_RESIZE_B);
 
 		for (WidgetMenuOption widgetMenuOption : managedMenus)
 		{
@@ -383,42 +377,40 @@ public class SpellbookPresetsPlugin extends Plugin
 		clearReoderMenus();
 		if (reordering)
 		{
-			menuManager.addManagedCustomMenu(FIXED_MAGIC_TAB_LOCK, e -> reordering(false));
-			menuManager.addManagedCustomMenu(RESIZABLE_MAGIC_TAB_LOCK, e -> reordering(false));
-			menuManager.addManagedCustomMenu(RESIZABLE_BOTTOM_LINE_MAGIC_TAB_LOCK, e -> reordering(false));
+			menuManager.addManagedCustomMenu(LOCK_MENU_FIXED, e -> reordering(false));
+			menuManager.addManagedCustomMenu(LOCK_MENU_RESIZE_A, e -> reordering(false));
+			menuManager.addManagedCustomMenu(LOCK_MENU_RESIZE_B, e -> reordering(false));
 		}
 		else
 		{
-			menuManager.addManagedCustomMenu(FIXED_MAGIC_TAB_UNLOCK, e -> reordering(true));
-			menuManager.addManagedCustomMenu(RESIZABLE_MAGIC_TAB_UNLOCK, e -> reordering(true));
-			menuManager.addManagedCustomMenu(RESIZABLE_BOTTOM_LINE_MAGIC_TAB_UNLOCK, e -> reordering(true));
+			menuManager.addManagedCustomMenu(UNLOCK_MENU_FIXED, e -> reordering(true));
+			menuManager.addManagedCustomMenu(UNLOCK_MENU_RESIZE_A, e -> reordering(true));
+			menuManager.addManagedCustomMenu(UNLOCK_MENU_RESIZE_B, e -> reordering(true));
 
 			if(filteringEnabled){
-				menuManager.addManagedCustomMenu(FIXED_MAGIC_TAB_DISABLE, e -> toggleFiltering(false));
-				menuManager.addManagedCustomMenu(RESIZABLE_MAGIC_TAB_DISABLE, e -> toggleFiltering(false));
-				menuManager.addManagedCustomMenu(RESIZABLE_BOTTOM_LINE_MAGIC_TAB_DISABLE, e -> toggleFiltering(false));
+				menuManager.addManagedCustomMenu(DISABLE_MENU_FIXED, e -> toggleFiltering(false));
+				menuManager.addManagedCustomMenu(DISABLE_MENU_RESIZE_A, e -> toggleFiltering(false));
+				menuManager.addManagedCustomMenu(DISABLE_MENU_RESIZE_B, e -> toggleFiltering(false));
 			}else{
-				menuManager.addManagedCustomMenu(FIXED_MAGIC_TAB_ENABLE, e -> toggleFiltering(true));
-				menuManager.addManagedCustomMenu(RESIZABLE_MAGIC_TAB_ENABLE, e -> toggleFiltering(true));
-				menuManager.addManagedCustomMenu(RESIZABLE_BOTTOM_LINE_MAGIC_TAB_ENABLE, e -> toggleFiltering(true));
+				menuManager.addManagedCustomMenu(ENABLE_MENU_FIXED, e -> toggleFiltering(true));
+				menuManager.addManagedCustomMenu(ENABLE_MENU_RESIZE_A, e -> toggleFiltering(true));
+				menuManager.addManagedCustomMenu(ENABLE_MENU_RESIZE_B, e -> toggleFiltering(true));
 			}
 
 			for (String preset : presets)
 			{
-				WidgetMenuOption unlockFixed = new WidgetMenuOption("Load preset ("+preset+")",
-						"", InterfaceID.Toplevel.STONE6);
+				String option = "Load preset ("+preset+")";
+
+				WidgetMenuOption unlockFixed = new WidgetMenuOption(option, "", FIXED_MAGIC_TAB_ID);
 				menuManager.addManagedCustomMenu(unlockFixed, e -> changePreset(preset));
-
-				WidgetMenuOption unlockResizebleA = new WidgetMenuOption("Load preset ("+preset+")",
-						"", InterfaceID.ToplevelOsrsStretch.STONE6);
-				menuManager.addManagedCustomMenu(unlockResizebleA, e -> changePreset(preset));
-
-				WidgetMenuOption unlockResizebleB = new WidgetMenuOption("Load preset ("+preset+")",
-						"", InterfaceID.ToplevelPreEoc.STONE6);
-				menuManager.addManagedCustomMenu(unlockResizebleB, e -> changePreset(preset));
-
 				managedMenus.add(unlockFixed);
+
+				WidgetMenuOption unlockResizebleA = new WidgetMenuOption(option, "", RESIZABLE_A_MAGIC_TABID);
+				menuManager.addManagedCustomMenu(unlockResizebleA, e -> changePreset(preset));
 				managedMenus.add(unlockResizebleA);
+
+				WidgetMenuOption unlockResizebleB = new WidgetMenuOption(option, "", RESIZABLE_B_MAGIC_TABID);
+				menuManager.addManagedCustomMenu(unlockResizebleB, e -> changePreset(preset));
 				managedMenus.add(unlockResizebleB);
 			}
 
