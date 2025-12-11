@@ -113,6 +113,9 @@ public class SpellbookPresetsPlugin extends Plugin
 	@Inject
 	private SpellbookPresetsConfig config;
 
+	@Inject
+	private SelectionHandler selectionHandler;
+
 	private static final String LOCK = "Save-spells";
 	private static final String UNLOCK = "Edit-spells";
 	// [proc,magic_spellbook_modifyops] shifts around ops, but seems to only use
@@ -418,7 +421,7 @@ public class SpellbookPresetsPlugin extends Plugin
 	}
 
 	//change to a specifed preset, additionally re-enabling filtering if disabled.
-	private void changePreset(String preset){
+	public void changePreset(String preset){
 		filteringEnabled = true;
 		currentPreset = preset;
 		reordering = false;
@@ -460,7 +463,7 @@ public class SpellbookPresetsPlugin extends Plugin
 			//spellbook has just been edited, more than likely the user wants the spells to be filtered again.
 			filteringEnabled = true;
 			//save spells all at once on reorder-end
-			saveSpellbooks(currentPreset);
+			saveSpellbooks(currentPreset,spellbooks);
 		}
 
 		refreshReorderMenus();
@@ -833,8 +836,8 @@ public class SpellbookPresetsPlugin extends Plugin
 	//Converts collection of spellbooks (spellbookid->(spellid,spelldata)) to json
 	//Saves the json to config with the name of given preset
 	//Only called on redorder-end for performance.
-	public void saveSpellbooks(String preset){
-		String json = gson.toJson(spellbooks);
+	public void saveSpellbooks(String preset, Map<Integer, Map<Integer, SpellData>> data){
+		String json = gson.toJson(data);
 		configManager.setConfiguration(GROUP, "spellbookData_"+preset, json);
 
 		StringBuilder savedConfig = new StringBuilder();
