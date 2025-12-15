@@ -31,6 +31,11 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.google.inject.Provides;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
+import java.sql.Time;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -43,6 +48,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.inject.Inject;
+import javax.rmi.ssl.SslRMIClientSocketFactory;
+import javax.swing.*;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -54,7 +61,10 @@ import net.runelite.api.EnumID;
 import net.runelite.api.ItemComposition;
 import net.runelite.api.ParamID;
 import net.runelite.api.ScriptID;
+import net.runelite.api.events.BeforeRender;
+import net.runelite.api.events.ClientTick;
 import net.runelite.api.events.DraggingWidgetChanged;
+import net.runelite.api.events.MenuEntryAdded;
 import net.runelite.api.events.ScriptCallbackEvent;
 import net.runelite.api.events.ScriptPreFired;
 import net.runelite.api.gameval.InterfaceID;
@@ -77,6 +87,9 @@ import net.runelite.client.menus.MenuManager;
 import net.runelite.client.menus.WidgetMenuOption;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
+import net.runelite.client.ui.ClientToolbar;
+import net.runelite.client.ui.NavigationButton;
+import net.runelite.client.util.ImageUtil;
 
 import static com.example.SpellbookPresetsConfig.GROUP;
 import static com.example.SpellbookPresetsConfig.FIRST_RUN_ACTIVEPRESETS_KEY;
@@ -108,13 +121,16 @@ public class SpellbookPresetsPlugin extends Plugin
 	private ChatMessageManager chatMessageManager;
 
 	@Inject
-	private ConfigManager configManager;
+	public ConfigManager configManager;
 
 	@Inject
 	private SpellbookPresetsConfig config;
 
 	@Inject
-	private SelectionHandler selectionHandler;
+	public SelectionHandler selectionHandler;
+
+	@Inject
+	private ClientToolbar clientToolbar;
 
 	private static final String LOCK = "Save-spells";
 	private static final String UNLOCK = "Edit-spells";
@@ -169,6 +185,10 @@ public class SpellbookPresetsPlugin extends Plugin
 
 	private Map<Integer, Map<Integer, SpellData>> spellbooks = new HashMap<>();
 
+	public SaveEditPanel sidePanel;
+
+	private NavigationButton navButton_panel;
+
 	@Provides
 	SpellbookPresetsConfig getConfig(ConfigManager configManager)
 	{
@@ -185,6 +205,18 @@ public class SpellbookPresetsPlugin extends Plugin
 		reordering = false;
 		refreshReorderMenus();
 		clientThread.invokeLater(this::reinitializeSpellbook);
+
+		sidePanel = new SaveEditPanel(this, configManager, gson);
+
+		final BufferedImage icon = ImageUtil.loadImageResource(SpellbookPresetsPlugin.class, "icon_panel.png");
+		navButton_panel = NavigationButton.builder()
+				.tooltip("Spellbook Presets")
+				.icon(icon)
+				.priority(1)
+				.panel(sidePanel)
+				.build();
+
+		clientToolbar.addNavigation(navButton_panel);
 	}
 
 	@Override
@@ -270,6 +302,7 @@ public class SpellbookPresetsPlugin extends Plugin
 				//event 2 starts, cancels cause flag is set
 				//event 1 finishes, flag is unset.
 				//(I really don't want to add more panel spam to the hub, so this will do)
+				/*
 				if (!ignoreNextConfigEvent) {
 					ignoreNextConfigEvent = true;
 					//convert saved config to list, search existing configs, if existing config not in the new saved list unset it
@@ -315,7 +348,7 @@ public class SpellbookPresetsPlugin extends Plugin
 					//event has finished processing, new config events for this key are now valid again.
 					ignoreNextConfigEvent = false;
 				}
-				break;
+				break;*/
 		}
 
 	}
@@ -833,12 +866,53 @@ public class SpellbookPresetsPlugin extends Plugin
 				.toArray();
 	}
 
+	//Rename preset, return the result of its success.
+	//TODO:only called in panel consider moving
+	public boolean renameSpellbooks(String originalPreset, String updatedPreset){
+		if(updatedPreset.length() >= 50)
+			return false;
+
+		boolean configAlreadyExists = spellbooksKeyExists(updatedPreset);
+		if(configAlreadyExists)
+			return false;
+
+		saveSpellbooks(
+				updatedPreset,
+				getSpellbooks(originalPreset));
+		removeSpellbooksKey(originalPreset);
+		return true;
+	}
+
+	public boolean spellbooksKeyExists(String preset)
+	{
+		return configManager.getConfiguration(GROUP,"spellbookData_"+preset) != null;
+	}
+
+	public void removeSpellbooksKey(String preset){
+		configManager.unsetConfiguration(GROUP,"spellbookData_"+preset);
+	}
+
+	public boolean addSpellBooksKey(String preset){
+		boolean configAlreadyExists = configManager.getConfiguration(GROUP,"spellbookData_"+preset) != null;
+		if(configAlreadyExists)
+		{
+			return false;
+		}
+
+		saveSpellbooks(preset,new HashMap<>());
+		return true;
+	}
+
+
 	//Converts collection of spellbooks (spellbookid->(spellid,spelldata)) to json
 	//Saves the json to config with the name of given preset
 	//Only called on redorder-end for performance.
 	public void saveSpellbooks(String preset, Map<Integer, Map<Integer, SpellData>> data){
 		String json = gson.toJson(data);
 		configManager.setConfiguration(GROUP, "spellbookData_"+preset, json);
+
+		System.out.println("setting "+preset +" > "+json);
+
 
 		StringBuilder savedConfig = new StringBuilder();
 		for (var key : configManager.getConfigurationKeys(GROUP + ".spellbookData_"))

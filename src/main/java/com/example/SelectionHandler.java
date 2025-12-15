@@ -42,6 +42,7 @@ import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
 import java.util.Map;
+import java.util.List;
 
 import static com.example.SpellbookPresetsConfig.GROUP;
 
@@ -128,6 +129,51 @@ public class SelectionHandler
         log.debug("Exported spellbook preset \"{}\" : {}", currentPreset,json);
     }
 
+    public void exportPreset(String preset){
+        Map<Integer, Map<Integer, SpellData>> spellbooks = plugin.getSpellbooks(preset);
+        if(spellbooks == null)
+            return;
+
+        String json = gson.toJson(new SpellbookPresetJsonObject(preset, spellbooks));
+        if(Strings.isNullOrEmpty(json))
+            return;
+
+        Toolkit.getDefaultToolkit()
+                .getSystemClipboard()
+                .setContents(new StringSelection(json), null);
+        log.debug("Exported spellbook preset \"{}\" : {}", preset,json);
+    }
+
+    SpellbookPresetJsonObject StashImportObject(){
+        try
+        {
+            final String clipboardText = Toolkit.getDefaultToolkit()
+                    .getSystemClipboard()
+                    .getData(DataFlavor.stringFlavor)
+                    .toString();
+            if (Strings.isNullOrEmpty(clipboardText))
+            {
+                log.warn("nothing to import");
+            }else{
+                //clipboard is present
+                try
+                {
+                    return gson.fromJson(clipboardText, SpellbookPresetJsonObject.class);
+                }
+                catch (JsonSyntaxException e)
+                {
+                    log.debug("Malformed JSON for clipboard import");
+                }
+            }
+        }
+        catch (IOException | UnsupportedFlavorException ex)
+        {
+            log.warn("error reading clipboard", ex);
+        }
+        return null;
+    }
+
+
     //attempt to import a preset from a verified json(users clipboard after checks)
     void importPreset(String json){
         SpellbookPresetJsonObject jsonObject = gson.fromJson(json, SpellbookPresetJsonObject.class);
@@ -145,17 +191,17 @@ public class SelectionHandler
     //confirm the import, saves the import to config.
     //inserts recent import to active presets on slot 0 and sets it to active.
     //slot 0 in specific is because we want there to be a hard cap of 10 active presets, more can be stored but will be ignored in list generation.
-    void confirmImport(SpellbookPresetJsonObject jsonObject){
+    public void confirmImport(SpellbookPresetJsonObject jsonObject){
         String presetName = jsonObject.preset;
         plugin.saveSpellbooks(presetName,jsonObject.data);
-
+/*
         String activePresets = configManager.getConfiguration(GROUP, "activePresets");
         String activePresersUpdated = presetName+"\n"+activePresets;
         final String presetNameUpdated = presetName;
 
         configManager.setConfiguration(GROUP, "activePresets",activePresersUpdated);
         clientThread.invokeLater(() -> plugin.changePreset(presetNameUpdated));
-
+*/
         log.debug("Imported spellbook preset \"{}\"", jsonObject.preset);
     }
 
@@ -164,6 +210,27 @@ public class SelectionHandler
         chatboxPanelManager.openTextMenuInput("A preset with this name already exists! Do you want to overwrite it?")
                         .option("Yes (Overwrite \""+jsonObject.preset+"\")", () -> confirmImport(jsonObject))
                         .option("No", () -> Runnables.doNothing()).build();
+    }
+
+    public void promptForDeletion(List<String> removals, String removalString)
+    {
+        ChatboxTextMenuInput chatboxTextMenuInput = chatboxPanelManager.openTextMenuInput(removalString);
+        chatboxTextMenuInput.option("yes",() -> confirmDeletion(removals,removalString))
+                .option("no",() -> Runnables.doNothing()).build();
+    }
+
+    void confirmDeletion(List<String> removals, String removalString){
+        log.debug("Deleting..");
+    }
+
+    public void promptForEdit(String oldPreset, String newPreset){
+        ChatboxTextMenuInput chatboxTextMenuInput = chatboxPanelManager.openTextMenuInput("Rename preset ("+oldPreset+") to ("+newPreset+")?");
+        chatboxTextMenuInput.option("yes",() -> confirmEdit(oldPreset,newPreset))
+                .option("no",() -> Runnables.doNothing()).build();
+    }
+
+    void confirmEdit(String oldPreset, String newPreset){
+
     }
 
 }
