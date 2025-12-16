@@ -73,9 +73,9 @@ public class PresetRowPanel extends JPanel
     /**Attempt to save a pending rename to config*/
     public void ChangePresetName(){
         String originalName = GetPresetName();
-        String updatedName = presetNameInputField.getText();
+        String updatedName = presetNameInputField.getText().trim();
         //rename succeeded, update UI accordingly.
-        if(plugin.renameSpellbooks(originalName,updatedName)){
+        if(!updatedName.isEmpty() && plugin.renameSpellbooks(originalName,updatedName)){
             presetName = updatedName;
             presetNameOutputField.setText(presetName);
 
