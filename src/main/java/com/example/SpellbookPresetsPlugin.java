@@ -170,16 +170,12 @@ public class SpellbookPresetsPlugin extends Plugin
 
 	public String currentPreset = "";
 
-	private SWAP_MODE swapMode;
-
-	private CURRENT_OPTION_STYLE currentOpRenderStyle;
-
-	private Color currentOpCustomColor;
-
-	private MODIFY_OPTION_STYLE modifyOpRenderStyle;
+	private SWAP_MODE configSwapMode;
+	private CURRENT_OPTION_STYLE configCurrentOpRenderStyle;
+	private Color configCurrentOpCustomColor;
+	private MODIFY_OPTION_STYLE configModifyOpRenderStyle;
+	private boolean configNoLoadOps = false;
 	private boolean modifyOpHotkeyHeld = false;
-	private boolean noLoadOps = false;
-
 
 	@Getter(AccessLevel.PACKAGE)
 	private List<String> presets = new ArrayList<>();
@@ -221,7 +217,7 @@ public class SpellbookPresetsPlugin extends Plugin
 		cacheConfigs();
 
 		modifyOpHotkeyHeld = false;
-		if(modifyOpRenderStyle == MODIFY_OPTION_STYLE.HOTKEY){
+		if(configModifyOpRenderStyle == MODIFY_OPTION_STYLE.HOTKEY){
 			keyManager.registerKeyListener(modifyOptionsKeyListener);
 		}
 
@@ -280,11 +276,11 @@ public class SpellbookPresetsPlugin extends Plugin
 	public void cacheConfigs(){
 		showAllIfEmpty = config.showAllIfEmpty();
 		presets = activePresetsFromConfig();
-		swapMode = config.spellMoveMode();
-		currentOpRenderStyle = config.currentOptionRendering();
-		currentOpCustomColor = config.currentOptionCustomColor();
-		modifyOpRenderStyle = config.modifyOptionRendering();
-		noLoadOps = config.noLoadOps();
+		configSwapMode = config.spellMoveMode();
+		configCurrentOpRenderStyle = config.currentOptionRendering();
+		configCurrentOpCustomColor = config.currentOptionCustomColor();
+		configModifyOpRenderStyle = config.modifyOptionRendering();
+		configNoLoadOps = config.noLoadOps();
 	}
 
 	/**updates current preset if actives no longer contains it*/
@@ -298,7 +294,7 @@ public class SpellbookPresetsPlugin extends Plugin
 
 		switch (configChanged.getKey()){
 			case SPELL_MOVE_MODE_KEY:
-				swapMode = config.spellMoveMode();
+				configSwapMode = config.spellMoveMode();
 				break;
 			case SHOW_ALL_IF_EMPTY_KEY:
 				showAllIfEmpty = config.showAllIfEmpty();
@@ -316,13 +312,13 @@ public class SpellbookPresetsPlugin extends Plugin
 				break;
 			case CURRENT_OPTION_RENDER_KEY:
 			case CURRENT_OPTION_COLOR_KEY:
-				currentOpCustomColor = config.currentOptionCustomColor();
-				currentOpRenderStyle = config.currentOptionRendering();
+				configCurrentOpCustomColor = config.currentOptionCustomColor();
+				configCurrentOpRenderStyle = config.currentOptionRendering();
 				refreshReorderMenus();
 				break;
 			case MODIFY_OPTION_RENDER_KEY:
-				modifyOpRenderStyle = config.modifyOptionRendering();
-				if(modifyOpRenderStyle == MODIFY_OPTION_STYLE.ALWAYS_RENDER){
+				configModifyOpRenderStyle = config.modifyOptionRendering();
+				if(configModifyOpRenderStyle == MODIFY_OPTION_STYLE.ALWAYS_RENDER){
 					keyManager.unregisterKeyListener(modifyOptionsKeyListener);
 					modifyOpHotkeyHeld = false;
 				}else{
@@ -331,7 +327,7 @@ public class SpellbookPresetsPlugin extends Plugin
 				refreshReorderMenus();
 				break;
 			case NO_LOAD_OPTIONS_KEY:
-				noLoadOps = config.noLoadOps();
+				configNoLoadOps = config.noLoadOps();
 				break;
 
 		}
@@ -413,7 +409,7 @@ public class SpellbookPresetsPlugin extends Plugin
 		{
 
 			//for those who don't want the extra clutter of options they don't use often they will only render while holding their chosen key.
-			if(modifyOpRenderStyle == MODIFY_OPTION_STYLE.ALWAYS_RENDER || modifyOpHotkeyHeld)
+			if(configModifyOpRenderStyle == MODIFY_OPTION_STYLE.ALWAYS_RENDER || modifyOpHotkeyHeld)
 			{
 				String currentPresetColored = ColorUtil.wrapWithColorTag(currentPreset, MENU_NAME_COLOR_STANDARD);
 				String currentOp = "Edit " + currentPresetColored;
@@ -437,7 +433,7 @@ public class SpellbookPresetsPlugin extends Plugin
 					menuManager.addManagedCustomMenu(ENABLE_MENU_RESIZE_B, e -> toggleFiltering(true));
 				}
 
-				if(modifyOpHotkeyHeld && noLoadOps){
+				if(modifyOpHotkeyHeld && configNoLoadOps){
 					return;
 				}
 
@@ -447,14 +443,14 @@ public class SpellbookPresetsPlugin extends Plugin
 			{
 				Color col = MENU_NAME_COLOR_STANDARD;
 				if(preset.equals(currentPreset)){
-					switch (currentOpRenderStyle){
+					switch (configCurrentOpRenderStyle){
 						case NO_RENDER:
 							continue;
 						case GREY_OUT:
 							col = MENU_NAME_COLOR_GREYOUT;
 							break;
 						case CUSTOM_COLOR:
-							col = currentOpCustomColor;
+							col = configCurrentOpCustomColor;
 							break;
 					}
 				}
@@ -588,11 +584,11 @@ public class SpellbookPresetsPlugin extends Plugin
 			log.debug("Set {} to {}", client.getItemDefinition(spellbook.getIntValue(order[fromIdx])).getStringValue(ParamID.SPELL_NAME), toIdx);
 			setPosition(spellbookId, spellbook.getIntValue(order[fromIdx]), toIdx);
 
-			if(swapMode == SWAP_MODE.SWAP)
+			if(configSwapMode == SWAP_MODE.SWAP)
 			{
 				log.debug("Set {} to {}", client.getItemDefinition(spellbook.getIntValue(order[toIdx])).getStringValue(ParamID.SPELL_NAME), fromIdx);
 				setPosition(spellbookId, spellbook.getIntValue(order[toIdx]), fromIdx);
-			}else if(swapMode == SWAP_MODE.INSERT){
+			}else if(configSwapMode == SWAP_MODE.INSERT){
 				if (fromIdx < toIdx)
 				{
 					for (int i = fromIdx + 1; i <= toIdx; ++i)
