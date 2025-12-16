@@ -126,9 +126,9 @@ public class SpellbookPresetsPlugin extends Plugin
 	private static final String ENABLE = "Show preset";
 
 	//menu ops for the 3 client sizes for editing/saving a preset & hiding/showing a preset
-	private static int FIXED_MAGIC_TAB_ID = InterfaceID.Toplevel.STONE6;
-	private static int RESIZABLE_A_MAGIC_TABID = InterfaceID.ToplevelOsrsStretch.STONE6;
-	private static int RESIZABLE_B_MAGIC_TABID = InterfaceID.ToplevelPreEoc.STONE6;
+	private static final int FIXED_MAGIC_TAB_ID = InterfaceID.Toplevel.STONE6;
+	private static final int RESIZABLE_A_MAGIC_TABID = InterfaceID.ToplevelOsrsStretch.STONE6;
+	private static final int RESIZABLE_B_MAGIC_TABID = InterfaceID.ToplevelPreEoc.STONE6;
 
 	/**Fixed**/
 	private static final WidgetMenuOption LOCK_MENU_FIXED = new WidgetMenuOption(LOCK, "", FIXED_MAGIC_TAB_ID);
@@ -827,7 +827,7 @@ public class SpellbookPresetsPlugin extends Plugin
 	public void saveSpellbooks(String preset, Map<Integer, Map<Integer, SpellData>> data){
 		String json = gson.toJson(data);
 		configManager.setConfiguration(GROUP, "spellbookData_"+preset, json);
-		System.out.println("setting "+preset +" > "+json);
+		log.debug("setting "+preset +" > "+json);
 	}
 
 	/**returns a collection of spellbook > spellData

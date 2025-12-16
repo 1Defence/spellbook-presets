@@ -25,6 +25,7 @@
 package com.example;
 
 import com.google.gson.Gson;
+import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.FontManager;
@@ -54,6 +55,7 @@ import java.util.regex.Pattern;
 import static com.example.SpellbookPresetsConfig.ACTIVE_PRESETS_KEY;
 import static com.example.SpellbookPresetsConfig.GROUP;
 
+@Slf4j
 public class SaveEditPanel extends PluginPanel
 {
 
@@ -229,7 +231,7 @@ public class SaveEditPanel extends PluginPanel
                 int confirm = JOptionPane.showConfirmDialog(headerContainer, messagePrompt, "Confirm", JOptionPane.YES_NO_OPTION);
                 if (confirm == JOptionPane.YES_OPTION)
                 {
-                    System.out.println("Importing " + stashedImport.preset + " : " + stashedImport.data);
+                    log.debug("Importing " + stashedImport.preset + " : " + stashedImport.data);
                     plugin.selectionHandler.confirmImport(stashedImport);
                     AddNewPresetToCollection(presetName,exists);
                 }
@@ -623,7 +625,7 @@ public class SaveEditPanel extends PluginPanel
         JButton exportBtn = CreateButton("Export", EXPORT_ICON);
         exportBtn.addActionListener(e -> {
             row.Export();
-            System.out.println("Exporting " + presetName);
+            log.debug("Exporting " + presetName);
         });
 
         //Delete button
@@ -631,7 +633,7 @@ public class SaveEditPanel extends PluginPanel
         deleteBtn.addActionListener(e -> {
             int confirm = JOptionPane.showConfirmDialog(this, "Delete \"" + presetName + "\"?", "Confirm", JOptionPane.YES_NO_OPTION);
             if (confirm == JOptionPane.YES_OPTION) {
-                System.out.println("Deleting " + presetName);
+                log.debug("Deleting " + presetName);
                 if(active){
                     activePresetList.remove(presetName);
                     requestConfigUpdate();
@@ -761,7 +763,7 @@ public class SaveEditPanel extends PluginPanel
     private void updateConfig(){
         String json = gson.toJson(activePresetList);
         configManager.setConfiguration(GROUP, ACTIVE_PRESETS_KEY, json);
-        System.out.println("updating configs... "+json);
+        log.debug("updating configs... "+json);
         configUpdateTimer = null;
     }
 
