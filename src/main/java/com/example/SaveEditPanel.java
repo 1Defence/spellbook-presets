@@ -470,7 +470,7 @@ public class SaveEditPanel extends PluginPanel
         JButton swapActiveButton;
 
         if(active){
-            //row is currently active, the assosciated button will be a removal button that moves the row from active->inactive
+            //row is currently active, the associated button will be a removal button that moves the row from active->inactive
             swapActiveButton = CreateButton("Remove",REMOVE_ICON_FADED);
             swapActiveButton.setRolloverIcon(REMOVE_ICON);
 
@@ -500,7 +500,7 @@ public class SaveEditPanel extends PluginPanel
             });
 
         }else{
-            //row is currently inactive, the assosciated button will be an add button that moves the row from inactive->active
+            //row is currently inactive, the associated button will be an add button that moves the row from inactive->active
             swapActiveButton = CreateButton("Add",ADD_ICON_FADED);
             swapActiveButton.setRolloverIcon(ADD_ICON);
 

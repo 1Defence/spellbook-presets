@@ -46,6 +46,7 @@ public class PresetRowPanel extends JPanel
         return presetName;
     }
 
+    /**Attempt to save a pending rename to config*/
     public void ChangePresetName(){
         String originalName = GetPresetName();
         String updatedName = presetNameInputField.getText();
@@ -69,7 +70,8 @@ public class PresetRowPanel extends JPanel
         ToggleRenameUI();
     }
 
-    //toggle and update the renaming UI of the row.
+    /**toggle and update the renaming UI of the row
+     * essentially rename mode on/off */
     public void ToggleRenameUI(){
 
         boolean editEnabled = presetNameInputField.isBlocked();
@@ -97,11 +99,15 @@ public class PresetRowPanel extends JPanel
         }
     }
 
+    /**Moves preset string from current container to other container
+     * i.e current container is active, other is inactive
+     * removes preset from active and adds it to inactive.*/
     public void MoveTo(List<String> otherPresetContainer){
         presetListHandle.remove(presetName);
         otherPresetContainer.add(presetName);
     }
 
+    /**Export Row's preset and saves to clipboard*/
     public void Export(){
         plugin.selectionHandler.exportPreset(GetPresetName());
     }
