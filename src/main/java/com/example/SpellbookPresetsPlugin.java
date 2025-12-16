@@ -175,6 +175,7 @@ public class SpellbookPresetsPlugin extends Plugin
 	private Color configCurrentOpCustomColor;
 	private MODIFY_OPTION_STYLE configModifyOpRenderStyle;
 	private boolean configNoLoadOps = false;
+	private OPEN_TAB_CONDITION configOpenTabCondition;
 	private boolean modifyOpHotkeyHeld = false;
 
 	@Getter(AccessLevel.PACKAGE)
@@ -281,6 +282,7 @@ public class SpellbookPresetsPlugin extends Plugin
 		configCurrentOpCustomColor = config.currentOptionCustomColor();
 		configModifyOpRenderStyle = config.modifyOptionRendering();
 		configNoLoadOps = config.noLoadOps();
+		configOpenTabCondition = config.openTabCondition();
 	}
 
 	/**updates current preset if actives no longer contains it*/
@@ -328,6 +330,9 @@ public class SpellbookPresetsPlugin extends Plugin
 				break;
 			case NO_LOAD_OPTIONS_KEY:
 				configNoLoadOps = config.noLoadOps();
+				break;
+			case OPEN_TAB_CONDITION_KEY:
+				configOpenTabCondition = config.openTabCondition();
 				break;
 
 		}
@@ -483,6 +488,7 @@ public class SpellbookPresetsPlugin extends Plugin
 		refreshReorderMenus();
 		configManager.setConfiguration(GROUP, CURRENT_PRESET_KEY, preset);
 		clientThread.invokeLater(this::reinitializeSpellbook);
+		requestMagicTabOpen(OPEN_TAB_CONDITION.LOAD_PRESET);
 	}
 
 	/**update the current preset after changes have occured*/
@@ -528,6 +534,27 @@ public class SpellbookPresetsPlugin extends Plugin
 		refreshReorderMenus();
 
 		redrawSpellbook();
+
+		if(reordering){
+			requestMagicTabOpen(OPEN_TAB_CONDITION.EDIT_PRESET);
+		}
+
+	}
+
+	/**Attempt to open the magic tab
+	 * occurs on menu-op selection & if user starts the plugin or removes their current preset from active list
+	 * which menu triggers this depends on user-preference
+	 * Edit-spellbook | Load-preset | None*/
+	public void requestMagicTabOpen(OPEN_TAB_CONDITION condition){
+		if((configOpenTabCondition.value & condition.value) == 0)
+			return;
+
+		int tabScriptId = 915;
+		int magicTabId = 6;
+		clientThread.invokeLater(() ->
+		{
+			client.runScript(tabScriptId, magicTabId);
+		});
 	}
 
 	/**Unchanged, matches SpellbookPlugin*/

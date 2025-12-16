@@ -51,6 +51,8 @@ public interface SpellbookPresetsConfig extends Config
 
 	String NO_LOAD_OPTIONS_KEY = "noLoadOps";
 
+	String OPEN_TAB_CONDITION_KEY = "openTabCondition";
+
 	//in the situation that our data formatting/saving/loading changes. the version allows us to know how to handle migration.
 	//for now it just gets set and exists.
 	String LAST_VERSION_KEY = "version";
@@ -61,6 +63,17 @@ public interface SpellbookPresetsConfig extends Config
 	enum CURRENT_OPTION_STYLE {STANDARD, GREY_OUT, CUSTOM_COLOR, NO_RENDER}
 
 	enum MODIFY_OPTION_STYLE {ALWAYS_RENDER,HOTKEY}
+
+	enum OPEN_TAB_CONDITION {
+		NONE(0),
+		EDIT_PRESET(1),
+		LOAD_PRESET(1 << 1),
+		BOTH(EDIT_PRESET.value | LOAD_PRESET.value);
+		public final int value;
+		OPEN_TAB_CONDITION(int value) {
+			this.value = value;
+		}
+	}
 
 	@ConfigItem(
 			position = 0,
@@ -137,5 +150,16 @@ public interface SpellbookPresetsConfig extends Config
 	default boolean noLoadOps()
 	{
 		return true;
+	}
+
+	@ConfigItem(
+			position = 7,
+			keyName = OPEN_TAB_CONDITION_KEY,
+			name = "Open Tab",
+			description = "The options that will additionally open the magic tab in game"
+	)
+	default OPEN_TAB_CONDITION openTabCondition()
+	{
+		return OPEN_TAB_CONDITION.EDIT_PRESET;
 	}
 }
