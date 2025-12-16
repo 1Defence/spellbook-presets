@@ -662,6 +662,21 @@ public class SpellbookPresetsPlugin extends Plugin
 		// if the user has no presets active, display spellbook as normal.
 		Map<Integer, SpellData> book = spellbooks.get(spellbookEnumId);
 		boolean bookIsEmpty = book == null || book.isEmpty();
+		if(showAllIfEmpty && !bookIsEmpty){
+			//Verify the contents aren't all hidden, this can happen when spells have a modified position but none of them are set visible by user.
+			//while you could clear the map on save to prevent said situation, we want to retain the current positioning status incase the user wants to modify this set later.
+			boolean hasAnyModifiedSpell = false;
+			for (SpellData spellData : book.values())
+			{
+				if(spellData.getHidden()){
+					hasAnyModifiedSpell = true;
+					break;
+				}
+			}
+			if(!hasAnyModifiedSpell){
+				bookIsEmpty = true;
+			}
+		}
 		if(!reordering
 				&& ((bookIsEmpty && showAllIfEmpty) || !filteringEnabled || presets.isEmpty())){
 			cleanupSpells(spellbookEnumId);
