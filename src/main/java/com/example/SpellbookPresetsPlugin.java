@@ -188,9 +188,15 @@ public class SpellbookPresetsPlugin extends Plugin
 	{
 		//currently just sets and exists, used for future migration if data handling changes.
 		configManager.setConfiguration(GROUP,LAST_VERSION_KEY, LIVE_VERSION_STRING);
-
 		cacheConfigs();
-		updatePreset();
+
+		String cachedPreset = configManager.getConfiguration(GROUP,CURRENT_PRESET_KEY);
+		if(!cachedPreset.isEmpty() && presets.contains(cachedPreset)){
+			changePreset(cachedPreset);
+		}else{
+			updatePreset();
+		}
+
 		filteringEnabled = true;
 		reordering = false;
 		refreshReorderMenus();
@@ -388,6 +394,7 @@ public class SpellbookPresetsPlugin extends Plugin
 		reordering = false;
 		spellbooks = getSpellbooks(preset);
 		refreshReorderMenus();
+		configManager.setConfiguration(GROUP, CURRENT_PRESET_KEY, preset);
 		clientThread.invokeLater(this::reinitializeSpellbook);
 	}
 
