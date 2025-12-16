@@ -27,6 +27,7 @@ package com.example;
 import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
+import net.runelite.client.config.ConfigSection;
 import net.runelite.client.config.Keybind;
 
 import java.awt.*;
@@ -75,11 +76,20 @@ public interface SpellbookPresetsConfig extends Config
 		}
 	}
 
+	@ConfigSection(name="Spellbook Presets", description="General settings", position=0)
+	String defaultPanel = "defaultPanel";
+	@ConfigSection(name="Current Option Style", description="Style settings for the currently selected preset : load (current)", position=1, closedByDefault=true)
+	String currentOptionStylePanel = "currentOptionStylePanel";
+
+	@ConfigSection(name="Modify Option Style", description="Style settings for the Edit and Hide preset options", position=2, closedByDefault=true)
+	String modifyOptionStylePanel = "modifyOptionStylePanel";
+
 	@ConfigItem(
 			position = 0,
 			keyName = SHOW_ALL_IF_EMPTY_KEY,
 			name = "Show All If Empty",
-			description = "Show all spells if none have been specified to show."
+			description = "Show all spells if none have been specified to show",
+			section = defaultPanel
 	)
 	default boolean showAllIfEmpty()
 	{
@@ -90,7 +100,8 @@ public interface SpellbookPresetsConfig extends Config
 			position = 1,
 			keyName = SPELL_MOVE_MODE_KEY,
 			name = "Spell Move Mode",
-			description = "Insert spell (all spells shift forward), Swap spell (spell A swaps position with spell B)"
+			description = "Insert spell (all spells shift forward), Swap spell (spell A swaps position with spell B)",
+			section = defaultPanel
 	)
 	default SWAP_MODE spellMoveMode()
 	{
@@ -99,9 +110,22 @@ public interface SpellbookPresetsConfig extends Config
 
 	@ConfigItem(
 			position = 2,
+			keyName = OPEN_TAB_CONDITION_KEY,
+			name = "Open Tab",
+			description = "The options that will additionally open the magic tab in game",
+			section = defaultPanel
+	)
+	default OPEN_TAB_CONDITION openTabCondition()
+	{
+		return OPEN_TAB_CONDITION.EDIT_PRESET;
+	}
+
+	@ConfigItem(
+			position = 3,
 			keyName = CURRENT_OPTION_RENDER_KEY,
 			name = "Current Render",
-			description = "The rendering style of the load menu option for the currently enabled preset."
+			description = "The rendering style of the load menu option for the currently enabled preset",
+			section = currentOptionStylePanel
 	)
 	default CURRENT_OPTION_STYLE currentOptionRendering()
 	{
@@ -109,10 +133,11 @@ public interface SpellbookPresetsConfig extends Config
 	}
 
 	@ConfigItem(
-			position = 3,
+			position = 4,
 			keyName = CURRENT_OPTION_COLOR_KEY,
 			name = "Current Custom Color",
-			description = "The custom color used for the current load menu option, when Current Render is set to [Custom Coloring]"
+			description = "The custom color used for the current load menu option, when Current Render is set to [Custom Coloring]",
+			section = currentOptionStylePanel
 	)
 	default Color currentOptionCustomColor()
 	{
@@ -120,10 +145,11 @@ public interface SpellbookPresetsConfig extends Config
 	}
 
 	@ConfigItem(
-			position = 4,
+			position = 5,
 			keyName = MODIFY_OPTION_RENDER_KEY,
 			name = "Modify Render",
-			description = "The rendering style of the Edit-preset and Hide-preset options"
+			description = "The rendering style of the Edit-preset and Hide-preset options",
+			section = modifyOptionStylePanel
 	)
 	default MODIFY_OPTION_STYLE modifyOptionRendering()
 	{
@@ -131,10 +157,11 @@ public interface SpellbookPresetsConfig extends Config
 	}
 
 	@ConfigItem(
-			position = 5,
+			position = 6,
 			keyName = MODIFY_OPTION_HOTKEY_KEY,
 			name = "Modify Key",
-			description = "Holding this key renders the edit and hide preset options on spellbook right-click, when Modify Render is set to [Hotkey]"
+			description = "Holding this key renders the edit and hide preset options on spellbook right-click, when Modify Render is set to [Hotkey]",
+			section = modifyOptionStylePanel
 	)
 	default Keybind modifyOptionsKey()
 	{
@@ -142,24 +169,14 @@ public interface SpellbookPresetsConfig extends Config
 	}
 
 	@ConfigItem(
-			position = 6,
+			position = 7,
 			keyName = NO_LOAD_OPTIONS_KEY,
 			name = "No Load Ops",
-			description = "When hotkey is held, load preset options won't be rendered"
+			description = "When hotkey is held, load preset options won't be rendered",
+			section = modifyOptionStylePanel
 	)
 	default boolean noLoadOps()
 	{
 		return true;
-	}
-
-	@ConfigItem(
-			position = 7,
-			keyName = OPEN_TAB_CONDITION_KEY,
-			name = "Open Tab",
-			description = "The options that will additionally open the magic tab in game"
-	)
-	default OPEN_TAB_CONDITION openTabCondition()
-	{
-		return OPEN_TAB_CONDITION.EDIT_PRESET;
 	}
 }
