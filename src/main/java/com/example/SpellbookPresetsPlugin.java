@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2024, Adam <Adam@sigterm.info>
- * Copyright (c) 2025, 1Defence
+ * Copyright (c) 2025, Jamal <http://github.com/1Defence>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
