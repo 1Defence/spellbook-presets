@@ -55,7 +55,7 @@ public interface SpellbookPresetsConfig extends Config
 
 	@ConfigItem(
 			position = 0,
-			keyName = "showAllIfEmpty",
+			keyName = SHOW_ALL_IF_EMPTY_KEY,
 			name = "Show All If Empty",
 			description = "Show all spells if none have been specified to show."
 	)
@@ -66,7 +66,7 @@ public interface SpellbookPresetsConfig extends Config
 
 	@ConfigItem(
 			position = 1,
-			keyName = "spellMoveMode",
+			keyName = SPELL_MOVE_MODE_KEY,
 			name = "Spell Move Mode",
 			description = "Insert spell (all spells shift forward), Swap spell (spell A swaps position with spell B)"
 	)
