@@ -29,9 +29,6 @@ import com.google.common.base.Strings;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import lombok.extern.slf4j.Slf4j;
-import net.runelite.client.callback.ClientThread;
-import net.runelite.client.config.ConfigManager;
-import net.runelite.client.game.chatbox.ChatboxPanelManager;
 
 import javax.inject.Inject;
 import java.awt.*;
@@ -45,20 +42,15 @@ import java.util.Map;
 public class ImportExportHandler
 {
     SpellbookPresetsPlugin plugin;
-    ChatboxPanelManager chatboxPanelManager;
-    ConfigManager configManager;
-    ClientThread clientThread;
     Gson gson;
 
     @Inject
-    public ImportExportHandler(SpellbookPresetsPlugin plugin, ChatboxPanelManager chatboxPanelManager, ConfigManager configManager, ClientThread clientThread, Gson gson){
+    public ImportExportHandler(SpellbookPresetsPlugin plugin, Gson gson){
         this.plugin = plugin;
-        this.chatboxPanelManager = chatboxPanelManager;
-        this.configManager = configManager;
-        this.clientThread = clientThread;
         this.gson = gson;
     }
 
+    /**Export saved preset of specified name and saves to clipboard*/
     public void exportPreset(String preset){
         Map<Integer, Map<Integer, SpellData>> spellbooks = plugin.getSpellbooks(preset);
         if(spellbooks == null)
@@ -74,6 +66,9 @@ public class ImportExportHandler
         log.debug("Exported spellbook preset \"{}\" : {}", preset,json);
     }
 
+    /**Stash the pending import into an object
+     * used to extract data like the name prior to accepting the import.
+     * thrown to GC if the user declines.*/
     SpellbookPresetJsonObject StashImportObject(){
         try
         {
@@ -85,7 +80,13 @@ public class ImportExportHandler
             {
                 log.warn("nothing to import");
             }else{
-                //clipboard is present
+
+                //quick check to prevent json parse in the common event that the clipboard text is obviously not a valid import.
+                if (!clipboardText.trim().startsWith("{")) {
+                    return null;
+                }
+
+                //clipboard text present and potentially a json.
                 try
                 {
                     return gson.fromJson(clipboardText, SpellbookPresetJsonObject.class);
@@ -103,12 +104,9 @@ public class ImportExportHandler
         return null;
     }
 
-    //confirm the import, saves the import to config.
-    //inserts recent import to active presets on slot 0 and sets it to active.
-    //slot 0 in specific is because we want there to be a hard cap of 10 active presets, more can be stored but will be ignored in list generation.
+    /**confirm the import, saves the import to config.*/
     public void confirmImport(SpellbookPresetJsonObject jsonObject){
-        String presetName = jsonObject.preset;
-        plugin.saveSpellbooks(presetName,jsonObject.data);
+        plugin.saveSpellbooks(jsonObject.preset,jsonObject.data);
         log.debug("Imported spellbook preset \"{}\"", jsonObject.preset);
     }
 
