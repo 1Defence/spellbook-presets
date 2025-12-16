@@ -264,6 +264,9 @@ public class SaveEditPanel extends PluginPanel
 
         requestConfigUpdate();
 
+        //attempt to change to the new preset.
+        plugin.changePreset(preset);
+
         if(startEdit)
         {
             editRow.ToggleRenameUI();

@@ -111,7 +111,7 @@ public class SpellbookPresetsPlugin extends Plugin
 	private SpellbookPresetsConfig config;
 
 	@Inject
-	public SelectionHandler selectionHandler;
+	public ImportExportHandler selectionHandler;
 
 	@Inject
 	private ClientToolbar clientToolbar;
@@ -157,7 +157,7 @@ public class SpellbookPresetsPlugin extends Plugin
 	private boolean showAllIfEmpty;
 	private boolean filteringEnabled;
 
-	private String currentPreset = "";
+	public String currentPreset = "";
 
 	private SWAP_MODE swapMode;
 
@@ -819,27 +819,7 @@ public class SpellbookPresetsPlugin extends Plugin
 	public void saveSpellbooks(String preset, Map<Integer, Map<Integer, SpellData>> data){
 		String json = gson.toJson(data);
 		configManager.setConfiguration(GROUP, "spellbookData_"+preset, json);
-
 		System.out.println("setting "+preset +" > "+json);
-
-
-		StringBuilder savedConfig = new StringBuilder();
-		for (var key : configManager.getConfigurationKeys(GROUP + ".spellbookData_"))
-		{
-			String[] splitKey = key.split("\\.", 2);
-			if (splitKey.length == 2)
-			{
-				String[] splitSave = splitKey[1].split("_",2);
-				if(splitSave.length == 2){
-					String foundSave = splitSave[1];
-					savedConfig.append(foundSave).append("\n");
-				}
-			}
-		}
-
-		//this updates the given config to reflect whats actually saved, removing any extra text the user added incorrectly.
-		configManager.setConfiguration(GROUP, "savedPresets", savedConfig.toString().trim());
-
 	}
 
 	/**returns a collection of spellbook > spellData

@@ -58,9 +58,14 @@ public class PresetRowPanel extends JPanel
 
             savedPresetList.remove(originalName);
             savedPresetList.add(presetName);
+
+            //attempt to change to the new preset.
+            if(plugin.currentPreset.equals(originalName)){
+                plugin.changePreset(presetName);
+            }
         }
 
-        //update regardless of success, as we need to revert back to origin
+        //update regardless of success, as we need to revert to origin
         ToggleRenameUI();
     }
 
