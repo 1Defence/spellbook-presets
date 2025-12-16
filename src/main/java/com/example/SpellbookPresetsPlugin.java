@@ -129,7 +129,8 @@ public class SpellbookPresetsPlugin extends Plugin
 	private static final String DISABLE = "Hide preset";
 	private static final String ENABLE = "Show preset";
 
-	private static final Color MENU_NAME_COLOR = new Color(255, 144, 64);
+	private static final Color MENU_NAME_COLOR_STANDARD = new Color(255, 144, 64);
+	private static final Color MENU_NAME_COLOR_GREYOUT = new Color(128,128,128);
 
 	//menu ops for the 3 client sizes for editing/saving a preset & hiding/showing a preset
 	private static final int FIXED_MAGIC_TAB_ID = InterfaceID.Toplevel.STONE6;
@@ -165,6 +166,11 @@ public class SpellbookPresetsPlugin extends Plugin
 	public String currentPreset = "";
 
 	private SWAP_MODE swapMode;
+
+	private CURRENT_OPTION_STYLE currentOpRenderStyle;
+
+	private Color currentOpCustomColor;
+
 
 	@Getter(AccessLevel.PACKAGE)
 	private List<String> presets = new ArrayList<>();
@@ -244,6 +250,8 @@ public class SpellbookPresetsPlugin extends Plugin
 		showAllIfEmpty = config.showAllIfEmpty();
 		presets = activePresetsFromConfig();
 		swapMode = config.spellMoveMode();
+		currentOpRenderStyle = config.currentOptionRendering();
+		currentOpCustomColor = config.currentOptionCustomColor();
 	}
 
 	/**updates current preset if actives no longer contains it*/
@@ -273,6 +281,13 @@ public class SpellbookPresetsPlugin extends Plugin
 					refreshReorderMenus();
 				}
 				break;
+			case CURRENT_OPTION_RENDER_KEY:
+			case CURRENT_OPTION_COLOR_KEY:
+				currentOpCustomColor = config.currentOptionCustomColor();
+				currentOpRenderStyle = config.currentOptionRendering();
+				refreshReorderMenus();
+				break;
+
 		}
 
 	}
@@ -351,7 +366,7 @@ public class SpellbookPresetsPlugin extends Plugin
 		else
 		{
 
-			String currentPresetColored = ColorUtil.wrapWithColorTag(currentPreset, MENU_NAME_COLOR);
+			String currentPresetColored = ColorUtil.wrapWithColorTag(currentPreset, MENU_NAME_COLOR_STANDARD);
 			String currentOp = "Edit "+currentPresetColored;
 
 			UNLOCK_MENU_FIXED.setMenuOption(currentOp);
@@ -373,7 +388,21 @@ public class SpellbookPresetsPlugin extends Plugin
 
 			for (String preset : presets)
 			{
-				String presetColored = ColorUtil.wrapWithColorTag(preset, MENU_NAME_COLOR);
+				Color col = MENU_NAME_COLOR_STANDARD;
+				if(preset.equals(currentPreset)){
+					switch (currentOpRenderStyle){
+						case NO_RENDER:
+							continue;
+						case GREY_OUT:
+							col = MENU_NAME_COLOR_GREYOUT;
+							break;
+						case CUSTOM_COLOR:
+							col = currentOpCustomColor;
+							break;
+					}
+				}
+
+				String presetColored = ColorUtil.wrapWithColorTag(preset, col);
 				String option = "Load "+presetColored;
 
 				WidgetMenuOption unlockFixed = new WidgetMenuOption(option, "", FIXED_MAGIC_TAB_ID);

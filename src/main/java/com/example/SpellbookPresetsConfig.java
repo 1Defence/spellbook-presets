@@ -28,6 +28,8 @@ import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
 
+import java.awt.*;
+
 @ConfigGroup(SpellbookPresetsConfig.GROUP)
 public interface SpellbookPresetsConfig extends Config
 {
@@ -38,12 +40,18 @@ public interface SpellbookPresetsConfig extends Config
 
 	String CURRENT_PRESET_KEY = "currentPreset";
 
+	String CURRENT_OPTION_RENDER_KEY = "currentOpRenderStyle";
+
+	String CURRENT_OPTION_COLOR_KEY = "currentOpCustomColor";
+
 	//in the situation that our data formatting/saving/loading changes. the version allows us to know how to handle migration.
 	//for now it just gets set and exists.
 	String LAST_VERSION_KEY = "version";
 	String LIVE_VERSION_STRING = "1.0.0";
 
 	enum SWAP_MODE { SWAP, INSERT}
+
+	enum CURRENT_OPTION_STYLE {STANDARD, GREY_OUT, CUSTOM_COLOR, NO_RENDER}
 
 	@ConfigItem(
 			position = 0,
@@ -65,5 +73,27 @@ public interface SpellbookPresetsConfig extends Config
 	default SWAP_MODE spellMoveMode()
 	{
 		return SWAP_MODE.SWAP;
+	}
+
+	@ConfigItem(
+			position = 2,
+			keyName = CURRENT_OPTION_RENDER_KEY,
+			name = "Current Render",
+			description = "The rendering style of the load menu option for the currently enabled preset."
+	)
+	default CURRENT_OPTION_STYLE currentOptionRendering()
+	{
+		return CURRENT_OPTION_STYLE.GREY_OUT;
+	}
+
+	@ConfigItem(
+			position = 3,
+			keyName = CURRENT_OPTION_COLOR_KEY,
+			name = "Current Custom Color",
+			description = "The custom color used for the current load menu option, when Current Render is set to [Custom Coloring]"
+	)
+	default Color currentOptionCustomColor()
+	{
+		return new Color(37, 150, 190);
 	}
 }
