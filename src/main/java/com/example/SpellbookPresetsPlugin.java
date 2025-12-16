@@ -241,10 +241,10 @@ public class SpellbookPresetsPlugin extends Plugin
 		}
 
 		switch (configChanged.getKey()){
-			case "spellMoveMode":
+			case SPELL_MOVE_MODE_KEY:
 				swapMode = config.spellMoveMode();
 				break;
-			case "showAllIfEmpty":
+			case SHOW_ALL_IF_EMPTY_KEY:
 				showAllIfEmpty = config.showAllIfEmpty();
 				clientThread.invokeLater(this::reinitializeSpellbook);
 				break;

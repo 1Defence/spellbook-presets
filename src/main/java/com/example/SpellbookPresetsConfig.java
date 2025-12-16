@@ -9,6 +9,9 @@ public interface SpellbookPresetsConfig extends Config
 {
 	String GROUP = "spellbookpresets";
 	String ACTIVE_PRESETS_KEY = "activePresetsList";
+	String SHOW_ALL_IF_EMPTY_KEY = "showAllIfEmpty";
+	String SPELL_MOVE_MODE_KEY = "spellMoveMode";
+
 	enum SWAP_MODE { SWAP, INSERT}
 
 	@ConfigItem(
