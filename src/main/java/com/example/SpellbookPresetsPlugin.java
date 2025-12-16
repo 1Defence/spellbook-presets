@@ -206,6 +206,7 @@ public class SpellbookPresetsPlugin extends Plugin
 		clearReoderMenus();
 		clientThread.invokeLater(this::cleanupSpellbook);
 		clientThread.invokeLater(this::reinitializeSpellbook);
+		clientToolbar.removeNavigation(navButton_panel);
 	}
 
 	@Subscribe
@@ -214,7 +215,7 @@ public class SpellbookPresetsPlugin extends Plugin
 		clientThread.invokeLater(this::redrawSpellbook);
 	}
 
-	/**Generate preset list from config*/
+	/**Generate preset list from config actives*/
 	public List<String> activePresetsFromConfig(){
 		String json = configManager.getConfiguration(GROUP, ACTIVE_PRESETS_KEY);
 		if (Strings.isNullOrEmpty(json))
@@ -231,7 +232,7 @@ public class SpellbookPresetsPlugin extends Plugin
 		swapMode = config.spellMoveMode();
 	}
 
-	/**updates active presets when changed*/
+	/**updates current preset if actives no longer contains it*/
 	@Subscribe
 	public void onConfigChanged(ConfigChanged configChanged)
 	{
@@ -792,15 +793,19 @@ public class SpellbookPresetsPlugin extends Plugin
 		return true;
 	}
 
+	/**Check if preset config key exists*/
 	public boolean spellbooksKeyExists(String preset)
 	{
 		return configManager.getConfiguration(GROUP,"spellbookData_"+preset) != null;
 	}
 
+	/**Clear preset from config*/
 	public void removeSpellbooksKey(String preset){
 		configManager.unsetConfiguration(GROUP,"spellbookData_"+preset);
 	}
 
+
+	/**Add empty preset of name to config*/
 	public boolean addSpellBooksKey(String preset){
 		boolean configAlreadyExists = configManager.getConfiguration(GROUP,"spellbookData_"+preset) != null;
 		if(configAlreadyExists)
