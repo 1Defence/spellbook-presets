@@ -31,25 +31,15 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.google.inject.Provides;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
-import java.sql.Time;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Predicate;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.inject.Inject;
-import javax.rmi.ssl.SslRMIClientSocketFactory;
-import javax.swing.*;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -61,10 +51,7 @@ import net.runelite.api.EnumID;
 import net.runelite.api.ItemComposition;
 import net.runelite.api.ParamID;
 import net.runelite.api.ScriptID;
-import net.runelite.api.events.BeforeRender;
-import net.runelite.api.events.ClientTick;
 import net.runelite.api.events.DraggingWidgetChanged;
-import net.runelite.api.events.MenuEntryAdded;
 import net.runelite.api.events.ScriptCallbackEvent;
 import net.runelite.api.events.ScriptPreFired;
 import net.runelite.api.gameval.InterfaceID;
@@ -162,13 +149,11 @@ public class SpellbookPresetsPlugin extends Plugin
 	private static final WidgetMenuOption ENABLE_MENU_RESIZE_B = new WidgetMenuOption(ENABLE, "", RESIZABLE_B_MAGIC_TABID);
 
 
-	private final Pattern NEWLINESPLITTER = Pattern.compile("\n");
 	private final String DEFAULT_PRESET = "Default";
 	private final int visibleOpacity = 0;
 	private final int hiddenOpacity = 200;
 
 	private boolean reordering;
-	private boolean ignoreNextConfigEvent;
 	private boolean showAllIfEmpty;
 	private boolean filteringEnabled;
 
@@ -229,8 +214,7 @@ public class SpellbookPresetsPlugin extends Plugin
 		clientThread.invokeLater(this::redrawSpellbook);
 	}
 
-
-	/**TODO:COMMENT THIS*/
+	/**Generate preset list from config*/
 	public List<String> activePresetsFromConfig(){
 		String json = configManager.getConfiguration(GROUP, ACTIVE_PRESETS_KEY);
 		if (Strings.isNullOrEmpty(json))
@@ -240,29 +224,14 @@ public class SpellbookPresetsPlugin extends Plugin
 		return gson.fromJson(json, new TypeToken<List<String>>(){}.getType());
 	}
 
-	//convert the string to a list of at most 10 presets
-	public List<String> listFromString(String string) {
-		if (string == null || string.isBlank()) {
-			return Collections.emptyList();
-		}
-		return NEWLINESPLITTER.splitAsStream(string)
-				.map(String::trim)
-				.filter(Predicate.not(String::isEmpty))
-				.limit(10)
-				.collect(Collectors.toList());
-	}
-
-	//cache config values on start
+	/**cache config values on start*/
 	public void cacheConfigs(){
 		showAllIfEmpty = config.showAllIfEmpty();
 		presets = activePresetsFromConfig();
 		swapMode = config.spellMoveMode();
 	}
 
-	//updates active presets when changed
-	//sanitise our saved presets config when changed, the intention is the user can remove individual,multiple or all saves here without need for a panel
-	//unfortunately user can input data here, so we validate the correct saves in the field and overwrite the config.
-	//....doing so triggers a second config event which we need to ignore to prevent infinite loop.
+	/**updates active presets when changed*/
 	@Subscribe
 	public void onConfigChanged(ConfigChanged configChanged)
 	{
@@ -293,7 +262,7 @@ public class SpellbookPresetsPlugin extends Plugin
 
 	}
 
-	//resets all stored config data of our presets.
+	/**resets all stored config data of our presets.*/
 	@Override
 	public void resetConfiguration()
 	{
@@ -314,7 +283,7 @@ public class SpellbookPresetsPlugin extends Plugin
 		log.debug("Reset spellbooks");
 	}
 
-	//slight changes to SpellbookPlugin, removes the extra static menus and the list of dynamic menus created in refreshReorderMenus
+	/**slight changes to SpellbookPlugin, removes the extra static menus and the list of dynamic menus created in refreshReorderMenus*/
 	private void clearReoderMenus()
 	{
 		menuManager.removeManagedCustomMenu(LOCK_MENU_FIXED);
@@ -340,15 +309,15 @@ public class SpellbookPresetsPlugin extends Plugin
 		managedMenus.clear();
 	}
 
-	//rather than disabling the plugin for a one-off spell(i.e a teleport), user can temporarily disable filtering
+	/**rather than disabling the plugin for a one-off spell(i.e a teleport), user can temporarily disable filtering*/
 	private void toggleFiltering(boolean state){
 		filteringEnabled = state;
 		refreshReorderMenus();
 		redrawSpellbook();
 	}
 
-	//many changes to SpellbookPlugin, added menu for every active preset and menu for enabling and disabling filters to the 3 client sizes.
-	//this might be excessive due to the 3 client sizes, possibly add checks and conditionally add the menus instead.
+	/**many changes to SpellbookPlugin, added menu for every active preset and menu for enabling and disabling filters to the 3 client sizes.
+	 * this might be excessive due to the 3 client sizes, possibly add checks and conditionally add the menus instead.*/
 	private void refreshReorderMenus()
 	{
 		clearReoderMenus();
@@ -394,7 +363,7 @@ public class SpellbookPresetsPlugin extends Plugin
 		}
 	}
 
-	//change to a specifed preset, additionally re-enabling filtering if disabled.
+	/**change to a specifed preset, additionally re-enabling filtering if disabled.*/
 	public void changePreset(String preset){
 		filteringEnabled = true;
 		currentPreset = preset;
@@ -404,7 +373,7 @@ public class SpellbookPresetsPlugin extends Plugin
 		clientThread.invokeLater(this::reinitializeSpellbook);
 	}
 
-	//update the current preset after changes have occured
+	/**update the current preset after changes have occured*/
 	private void updatePreset(){
 		if(presets.isEmpty()){
 			//if no presets, the "Default" preset is used.
@@ -419,7 +388,7 @@ public class SpellbookPresetsPlugin extends Plugin
 		}
 	}
 
-	//Slight changes to SpellbookPlugin, saves collection of spells to config on reorder-end, modified game message.
+	/**Slight changes to SpellbookPlugin, saves collection of spells to config on reorder-end, modified game message.*/
 	private void reordering(boolean state)
 	{
 		reordering = state;
@@ -445,7 +414,7 @@ public class SpellbookPresetsPlugin extends Plugin
 		redrawSpellbook();
 	}
 
-	//Unchanged, matches SpellbookPlugin
+	/**Unchanged, matches SpellbookPlugin*/
 	@Subscribe
 	public void onScriptPreFired(ScriptPreFired event)
 	{
@@ -458,7 +427,7 @@ public class SpellbookPresetsPlugin extends Plugin
 		}
 	}
 
-	//Slight changes to SpellbookPlugin, option to swap spell instead of inserting.
+	/**Slight changes to SpellbookPlugin, option to swap spell instead of inserting.*/
 	@Subscribe
 	public void onDraggingWidgetChanged(DraggingWidgetChanged event)
 	{
@@ -525,7 +494,7 @@ public class SpellbookPresetsPlugin extends Plugin
 		}
 	}
 
-	//Unchanged, matches SpellbookPlugin
+	/**Unchanged, matches SpellbookPlugin*/
 	private int findSpellIdxForComponent(EnumComposition spellbook, int[] spells, Widget c)
 	{
 		for (int i = 0; i < spells.length; ++i)
@@ -540,11 +509,11 @@ public class SpellbookPresetsPlugin extends Plugin
 		return -1;
 	}
 
-	//Many changes to SpellbookPlugin,
-	//invoke later on set opacity recolors CoolDown spells(H group,veng magic imbue etc) -- not proper fix for core plugin cause it can cause a slight flicker.
-	//cleans up spells if no filters selected or filtering is disabled
-	//additionally isHidden->isShown and different opacity defaults.
-	//Occurs on load, reorder start, reorder end
+	/**Many changes to SpellbookPlugin,
+	 * invoke later on set opacity recolors CoolDown spells(H group,veng magic imbue etc) -- not proper fix for core plugin cause it can cause a slight flicker.
+	 * cleans up spells if no filters selected or filtering is disabled
+	 * additionally isHidden->isShown and different opacity defaults.
+	 * Occurs on load, reorder start, reorder end*/
 	@Subscribe
 	public void onScriptCallbackEvent(ScriptCallbackEvent event)
 	{
@@ -646,7 +615,7 @@ public class SpellbookPresetsPlugin extends Plugin
 		stack[size - 1] = numSpells = numNewSpells;
 	}
 
-	//Slight changes to SpellbookPlugin, added null check for widget so shutdown doesn't cause NPE
+	/**Slight changes to SpellbookPlugin, added null check for widget so shutdown doesn't cause NPE*/
 	private void createWarning(boolean unlocked)
 	{
 		Widget w = client.getWidget(InterfaceID.MagicSpellbook.UNIVERSE);
@@ -668,8 +637,8 @@ public class SpellbookPresetsPlugin extends Plugin
 		}
 	}
 
-	//Slight changes to SpellbookPlugin, mainly isHidden->isShown and different opacity defaults.
-	//This is called when hiding/unhiding spells
+	/**Slight changes to SpellbookPlugin, mainly isHidden->isShown and different opacity defaults.
+	 * This is called when hiding/unhiding spells*/
 	private void initializeSpells(int spellbookEnum)
 	{
 		EnumComposition spellbook = client.getEnum(spellbookEnum);
@@ -713,7 +682,7 @@ public class SpellbookPresetsPlugin extends Plugin
 		}
 	}
 
-	//for the given spellbook, remove hide/unhide op and reset the opacity of the spells
+	/**for the given spellbook, remove hide/unhide op and reset the opacity of the spells*/
 	private void cleanupSpells(int spellbookEnum)
 	{
 		EnumComposition spellbook = client.getEnum(spellbookEnum);
@@ -731,7 +700,7 @@ public class SpellbookPresetsPlugin extends Plugin
 		}
 	}
 
-	//Unchanged, matches SpellbookPlugin
+	/**Unchanged, matches SpellbookPlugin*/
 	private void reinitializeSpellbook()
 	{
 		Widget w = client.getWidget(InterfaceID.MagicSpellbook.UNIVERSE);
@@ -743,7 +712,7 @@ public class SpellbookPresetsPlugin extends Plugin
 		}
 	}
 
-	//Unchanged, matches SpellbookPlugin
+	/**Unchanged, matches SpellbookPlugin*/
 	private void redrawSpellbook()
 	{
 		Widget w = client.getWidget(InterfaceID.MagicSpellbook.UNIVERSE);
@@ -755,7 +724,7 @@ public class SpellbookPresetsPlugin extends Plugin
 		}
 	}
 
-	//called on shutdown, removes hide/unhide ops and restores opacity to all spells & deletes red warning pane if present.
+	/**called on shutdown, removes hide/unhide ops and restores opacity to all spells & deletes red warning pane if present.*/
 	private void cleanupSpellbook()
 	{
 		Widget w = client.getWidget(InterfaceID.MagicSpellbook.UNIVERSE);
@@ -771,7 +740,7 @@ public class SpellbookPresetsPlugin extends Plugin
 		cleanupSpells(1985);
 	}
 
-	//Unchanged, matches SpellbookPlugin
+	/**Unchanged, matches SpellbookPlugin*/
 	private int[] calculateSpellbookOrder(int spellbookId, EnumComposition spellbook)
 	{
 		int[] spells = defaultSpellbookOrder(spellbook);
@@ -790,7 +759,7 @@ public class SpellbookPresetsPlugin extends Plugin
 				.toArray();
 	}
 
-	//Unchanged, matches SpellbookPlugin
+	/**Unchanged, matches SpellbookPlugin*/
 	private int[] defaultSpellbookOrder(EnumComposition spellbook)
 	{
 		return IntStream.range(0, spellbook.size())
@@ -807,8 +776,7 @@ public class SpellbookPresetsPlugin extends Plugin
 				.toArray();
 	}
 
-	//Rename preset, return the result of its success.
-	//TODO:only called in panel consider moving
+	/**Rename preset, return the result of its success.*/
 	public boolean renameSpellbooks(String originalPreset, String updatedPreset){
 		if(updatedPreset.length() >= 50)
 			return false;
@@ -845,9 +813,9 @@ public class SpellbookPresetsPlugin extends Plugin
 	}
 
 
-	//Converts collection of spellbooks (spellbookid->(spellid,spelldata)) to json
-	//Saves the json to config with the name of given preset
-	//Only called on redorder-end for performance.
+	/**Converts collection of spellbooks (spellbookid->(spellid,spelldata)) to json
+	 * Saves the json to config with the name of given preset
+	 * Only called on redorder-end for performance.*/
 	public void saveSpellbooks(String preset, Map<Integer, Map<Integer, SpellData>> data){
 		String json = gson.toJson(data);
 		configManager.setConfiguration(GROUP, "spellbookData_"+preset, json);
@@ -874,10 +842,10 @@ public class SpellbookPresetsPlugin extends Plugin
 
 	}
 
-	//returns a collection of spellbook > spellData
-	//ex lunarId, {spellid,spelldata}
-	//.. normalId, {spell,spelldata}
-	//instead of editing the config every spell edit, we modify this mapping. when edit mode is left we save the mapping to config as a whole.
+	/**returns a collection of spellbook > spellData
+	 * ex lunarId, {spellid,spelldata}
+	 * .. normalId, {spell,spelldata}
+	 * instead of editing the config every spell edit, we modify this mapping. when edit mode is left we save the mapping to config as a whole.*/
 	public Map<Integer, Map<Integer, SpellData>> getSpellbooks(String preset){
 		String json = configManager.getConfiguration(GROUP, "spellbookData_"+preset);
 		if (Strings.isNullOrEmpty(json))
@@ -887,7 +855,7 @@ public class SpellbookPresetsPlugin extends Plugin
 		return gson.fromJson(json, new TypeToken<Map<Integer, Map<Integer, SpellData>>>(){}.getType());
 	}
 
-	//sets spelldata to be hidden, adds book of spellbookId to spellbooks if missing
+	/**sets spelldata to be hidden, adds book of spellbookId to spellbooks if missing*/
 	private void setHidden(int spellbookId, int spellId, boolean hidden) {
 		Map<Integer, SpellData> book = spellbooks.computeIfAbsent(spellbookId, k -> new HashMap<>());
 
@@ -899,7 +867,7 @@ public class SpellbookPresetsPlugin extends Plugin
 		}
 	}
 
-	//sets spelldata position, adds book of spellbookId to spellbooks if missing
+	/**sets spelldata position, adds book of spellbookId to spellbooks if missing*/
 	private void setPosition(int spellbookId, int spellId, int position) {
 		Map<Integer, SpellData> book = spellbooks.computeIfAbsent(spellbookId, k -> new HashMap<>());
 
@@ -911,7 +879,7 @@ public class SpellbookPresetsPlugin extends Plugin
 		}
 	}
 
-	//indicates the spell in the current book should be visible (defaults to false if not present)
+	/**indicates the spell in the current book should be visible (defaults to false if not present)*/
 	private boolean isShown(int spellbookId, int spellId) {
 		Map<Integer, SpellData> book = spellbooks.get(spellbookId);
 		if (book == null) {
@@ -924,7 +892,7 @@ public class SpellbookPresetsPlugin extends Plugin
 		return spell.getHidden();
 	}
 
-	//the position of the current spell if tracked. (defaults to -1 if not present)
+	/**the position of the current spell if tracked. (defaults to -1 if not present)*/
 	private int getPosition(int spellbookId, int spellId) {
 		Map<Integer, SpellData> book = spellbooks.get(spellbookId);
 		if (book == null) {
