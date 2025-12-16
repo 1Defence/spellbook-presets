@@ -286,7 +286,7 @@ public class SaveEditPanel extends PluginPanel
         savedPresetList = savedPresetsFromConfig();
 
         //generate active list from config
-        activePresetList = activePresetsFromConfig();
+        activePresetList = plugin.activePresetsFromConfig();
 
         //generate inactive list from whats in saved but not in active
         inactivePresetList = generateInactivePresetList();
@@ -305,15 +305,6 @@ public class SaveEditPanel extends PluginPanel
         return presetList;
     }
 
-    /**TODO:COMMENT THIS*/
-    public List<String> activePresetsFromConfig(){
-        String json = configManager.getConfiguration(GROUP, ACTIVE_PRESETS_KEY);
-        if (Strings.isNullOrEmpty(json))
-        {
-            return new ArrayList<>();
-        }
-        return gson.fromJson(json, new TypeToken<List<String>>(){}.getType());
-    }
 
     /**TODO:COMMENT THIS*/
     public List<String> generateInactivePresetList(){
@@ -782,6 +773,12 @@ public class SaveEditPanel extends PluginPanel
         }
         int nextNumber = maxNumber+1;
         return baseString+nextNumber;
+    }
+
+    public void Refresh(){
+        initPresetLists();
+        rebuildActiveList();
+        rebuildInactiveList(true);
     }
 
 }

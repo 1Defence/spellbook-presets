@@ -71,6 +71,8 @@ import net.runelite.api.gameval.InterfaceID;
 import net.runelite.api.gameval.VarbitID;
 import net.runelite.api.widgets.JavaScriptCallback;
 import net.runelite.api.widgets.Widget;
+
+import static com.example.SpellbookPresetsConfig.*;
 import static net.runelite.api.widgets.WidgetConfig.DRAG;
 import static net.runelite.api.widgets.WidgetConfig.DRAG_ON;
 import net.runelite.api.widgets.WidgetSizeMode;
@@ -90,11 +92,6 @@ import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.util.ImageUtil;
-
-import static com.example.SpellbookPresetsConfig.GROUP;
-import static com.example.SpellbookPresetsConfig.FIRST_RUN_ACTIVEPRESETS_KEY;
-import static com.example.SpellbookPresetsConfig.FIRST_RUN_ACTIVEPRESETS_STRING;
-import static com.example.SpellbookPresetsConfig.SWAP_MODE;
 
 @PluginDescriptor(
 		name = "Spellbook Presets",
@@ -198,7 +195,6 @@ public class SpellbookPresetsPlugin extends Plugin
 	@Override
 	protected void startUp()
 	{
-		firstRunConfig();
 		cacheConfigs();
 		updatePreset();
 		filteringEnabled = true;
@@ -233,18 +229,15 @@ public class SpellbookPresetsPlugin extends Plugin
 		clientThread.invokeLater(this::redrawSpellbook);
 	}
 
-	//allows us to set the config on first-run, but not reset it to this value if the user sets the active presets to be empty.
-	//only important in this scenario to indicate how it should look(new lines as opposed to traditional commas)
-	public void firstRunConfig(){
-		if(configManager.getConfiguration(GROUP,FIRST_RUN_ACTIVEPRESETS_KEY) == null){
-			configManager.setConfiguration(GROUP,FIRST_RUN_ACTIVEPRESETS_KEY,true);
-			configManager.setConfiguration(GROUP,"activePresets",FIRST_RUN_ACTIVEPRESETS_STRING);
-		}
-	}
 
-	//convert active presets config to list
-	public List<String> parsePresets(){
-		return listFromString(config.getActivePresets());
+	/**TODO:COMMENT THIS*/
+	public List<String> activePresetsFromConfig(){
+		String json = configManager.getConfiguration(GROUP, ACTIVE_PRESETS_KEY);
+		if (Strings.isNullOrEmpty(json))
+		{
+			return new ArrayList<>();
+		}
+		return gson.fromJson(json, new TypeToken<List<String>>(){}.getType());
 	}
 
 	//convert the string to a list of at most 10 presets
@@ -262,7 +255,7 @@ public class SpellbookPresetsPlugin extends Plugin
 	//cache config values on start
 	public void cacheConfigs(){
 		showAllIfEmpty = config.showAllIfEmpty();
-		presets = parsePresets();
+		presets = activePresetsFromConfig();
 		swapMode = config.spellMoveMode();
 	}
 
@@ -286,8 +279,8 @@ public class SpellbookPresetsPlugin extends Plugin
 				showAllIfEmpty = config.showAllIfEmpty();
 				clientThread.invokeLater(this::reinitializeSpellbook);
 				break;
-			case "activePresets":
-				presets = parsePresets();
+			case ACTIVE_PRESETS_KEY:
+				presets = activePresetsFromConfig();
 				if(!presets.contains(currentPreset)){
 					//current preset should no longer be active, update it.
 					updatePreset();
@@ -296,59 +289,6 @@ public class SpellbookPresetsPlugin extends Plugin
 					refreshReorderMenus();
 				}
 				break;
-			case "savedPresets":
-				//allows same-config override without an infinite loop.
-				//event 1 starts, flag is set, Event 1 calls a change
-				//event 2 starts, cancels cause flag is set
-				//event 1 finishes, flag is unset.
-				//(I really don't want to add more panel spam to the hub, so this will do)
-				/*
-				if (!ignoreNextConfigEvent) {
-					ignoreNextConfigEvent = true;
-					//convert saved config to list, search existing configs, if existing config not in the new saved list unset it
-					boolean removeCurrentPreset = false;
-					String uSaveStr = configChanged.getNewValue();
-					if(uSaveStr != null){
-						List<String> uSaveList = listFromString(uSaveStr);
-						//these are what we expect to be valid, user can add garbage but for now it won't matter due to searching through the existing list only
-
-						StringBuilder uSaveConfig = new StringBuilder();
-						for (var key : configManager.getConfigurationKeys(GROUP + ".spellbookData_"))
-						{
-							//. in config name ignored with limit
-							String[] splitKey = key.split("\\.", 2);
-							if (splitKey.length == 2)
-							{
-								//_ in config name ignored with limit
-								String[] splitSave = splitKey[1].split("_",2);
-								if(splitSave.length == 2){
-									String foundSave = splitSave[1];
-									if(uSaveList.contains(foundSave)){
-										uSaveConfig.append(foundSave).append("\n");
-									}else{
-										configManager.unsetConfiguration(splitKey[0], splitKey[1]);
-										if(currentPreset.equals(foundSave)){
-											removeCurrentPreset = true;
-										}
-									}
-								}
-
-							}
-						}
-
-						//if user removed the current preset, change to default or the first in the active list.
-						if(removeCurrentPreset){
-							updatePreset();
-						}
-
-						//this updates the given config to reflect whats actually saved, removing any extra text the user added incorrectly.
-						configManager.setConfiguration(GROUP, "savedPresets", uSaveConfig.toString().trim());
-					}
-
-					//event has finished processing, new config events for this key are now valid again.
-					ignoreNextConfigEvent = false;
-				}
-				break;*/
 		}
 
 	}
@@ -366,7 +306,8 @@ public class SpellbookPresetsPlugin extends Plugin
 			}
 		}
 
-		configManager.setConfiguration(GROUP,"activePresets",FIRST_RUN_ACTIVEPRESETS_STRING);
+		configManager.unsetConfiguration(GROUP,ACTIVE_PRESETS_KEY);
+		sidePanel.Refresh();
 
 		clientThread.invokeLater(this::redrawSpellbook);
 
