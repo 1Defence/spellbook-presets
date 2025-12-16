@@ -74,12 +74,14 @@ import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.events.ProfileChanged;
+import net.runelite.client.input.KeyManager;
 import net.runelite.client.menus.MenuManager;
 import net.runelite.client.menus.WidgetMenuOption;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
+import net.runelite.client.util.HotkeyListener;
 import net.runelite.client.util.ImageUtil;
 
 import net.runelite.client.util.ColorUtil;
@@ -119,6 +121,9 @@ public class SpellbookPresetsPlugin extends Plugin
 
 	@Inject
 	private ClientToolbar clientToolbar;
+
+	@Inject
+	private KeyManager keyManager;
 
 	private static final String LOCK = "Save-spells";
 	private static final String UNLOCK = "Edit-spells";
@@ -171,6 +176,10 @@ public class SpellbookPresetsPlugin extends Plugin
 
 	private Color currentOpCustomColor;
 
+	private MODIFY_OPTION_STYLE modifyOpRenderStyle;
+	private boolean modifyOpHotkeyHeld = false;
+	private boolean noLoadOps = false;
+
 
 	@Getter(AccessLevel.PACKAGE)
 	private List<String> presets = new ArrayList<>();
@@ -181,6 +190,22 @@ public class SpellbookPresetsPlugin extends Plugin
 	public SaveEditPanel sidePanel;
 
 	private NavigationButton navButton_panel;
+
+	private final HotkeyListener modifyOptionsKeyListener = new HotkeyListener(() -> config.modifyOptionsKey())
+	{
+		@Override
+		public void hotkeyPressed()
+		{
+			modifyOpHotkeyHeld = true;
+			refreshReorderMenus();
+		}
+		@Override
+		public void hotkeyReleased()
+		{
+			modifyOpHotkeyHeld = false;
+			refreshReorderMenus();
+		}
+	};
 
 	@Provides
 	SpellbookPresetsConfig getConfig(ConfigManager configManager)
@@ -194,6 +219,11 @@ public class SpellbookPresetsPlugin extends Plugin
 		//currently just sets and exists, used for future migration if data handling changes.
 		configManager.setConfiguration(GROUP,LAST_VERSION_KEY, LIVE_VERSION_STRING);
 		cacheConfigs();
+
+		modifyOpHotkeyHeld = false;
+		if(modifyOpRenderStyle == MODIFY_OPTION_STYLE.HOTKEY){
+			keyManager.registerKeyListener(modifyOptionsKeyListener);
+		}
 
 		String cachedPreset = configManager.getConfiguration(GROUP,CURRENT_PRESET_KEY);
 		if(!cachedPreset.isEmpty() && presets.contains(cachedPreset)){
@@ -223,6 +253,7 @@ public class SpellbookPresetsPlugin extends Plugin
 	@Override
 	protected void shutDown()
 	{
+		keyManager.unregisterKeyListener(modifyOptionsKeyListener);
 		clearReoderMenus();
 		clientThread.invokeLater(this::cleanupSpellbook);
 		clientThread.invokeLater(this::reinitializeSpellbook);
@@ -252,6 +283,8 @@ public class SpellbookPresetsPlugin extends Plugin
 		swapMode = config.spellMoveMode();
 		currentOpRenderStyle = config.currentOptionRendering();
 		currentOpCustomColor = config.currentOptionCustomColor();
+		modifyOpRenderStyle = config.modifyOptionRendering();
+		noLoadOps = config.noLoadOps();
 	}
 
 	/**updates current preset if actives no longer contains it*/
@@ -286,6 +319,19 @@ public class SpellbookPresetsPlugin extends Plugin
 				currentOpCustomColor = config.currentOptionCustomColor();
 				currentOpRenderStyle = config.currentOptionRendering();
 				refreshReorderMenus();
+				break;
+			case MODIFY_OPTION_RENDER_KEY:
+				modifyOpRenderStyle = config.modifyOptionRendering();
+				if(modifyOpRenderStyle == MODIFY_OPTION_STYLE.ALWAYS_RENDER){
+					keyManager.unregisterKeyListener(modifyOptionsKeyListener);
+					modifyOpHotkeyHeld = false;
+				}else{
+					keyManager.registerKeyListener(modifyOptionsKeyListener);
+				}
+				refreshReorderMenus();
+				break;
+			case NO_LOAD_OPTIONS_KEY:
+				noLoadOps = config.noLoadOps();
 				break;
 
 		}
@@ -366,24 +412,35 @@ public class SpellbookPresetsPlugin extends Plugin
 		else
 		{
 
-			String currentPresetColored = ColorUtil.wrapWithColorTag(currentPreset, MENU_NAME_COLOR_STANDARD);
-			String currentOp = "Edit "+currentPresetColored;
+			//for those who don't want the extra clutter of options they don't use often they will only render while holding their chosen key.
+			if(modifyOpRenderStyle == MODIFY_OPTION_STYLE.ALWAYS_RENDER || modifyOpHotkeyHeld)
+			{
+				String currentPresetColored = ColorUtil.wrapWithColorTag(currentPreset, MENU_NAME_COLOR_STANDARD);
+				String currentOp = "Edit " + currentPresetColored;
 
-			UNLOCK_MENU_FIXED.setMenuOption(currentOp);
-			menuManager.addManagedCustomMenu(UNLOCK_MENU_FIXED, e -> reordering(true));
-			UNLOCK_MENU_RESIZE_A.setMenuOption(currentOp);
-			menuManager.addManagedCustomMenu(UNLOCK_MENU_RESIZE_A, e -> reordering(true));
-			UNLOCK_MENU_RESIZE_B.setMenuOption(currentOp);
-			menuManager.addManagedCustomMenu(UNLOCK_MENU_RESIZE_B, e -> reordering(true));
+				UNLOCK_MENU_FIXED.setMenuOption(currentOp);
+				menuManager.addManagedCustomMenu(UNLOCK_MENU_FIXED, e -> reordering(true));
+				UNLOCK_MENU_RESIZE_A.setMenuOption(currentOp);
+				menuManager.addManagedCustomMenu(UNLOCK_MENU_RESIZE_A, e -> reordering(true));
+				UNLOCK_MENU_RESIZE_B.setMenuOption(currentOp);
+				menuManager.addManagedCustomMenu(UNLOCK_MENU_RESIZE_B, e -> reordering(true));
 
-			if(filteringEnabled){
-				menuManager.addManagedCustomMenu(DISABLE_MENU_FIXED, e -> toggleFiltering(false));
-				menuManager.addManagedCustomMenu(DISABLE_MENU_RESIZE_A, e -> toggleFiltering(false));
-				menuManager.addManagedCustomMenu(DISABLE_MENU_RESIZE_B, e -> toggleFiltering(false));
-			}else{
-				menuManager.addManagedCustomMenu(ENABLE_MENU_FIXED, e -> toggleFiltering(true));
-				menuManager.addManagedCustomMenu(ENABLE_MENU_RESIZE_A, e -> toggleFiltering(true));
-				menuManager.addManagedCustomMenu(ENABLE_MENU_RESIZE_B, e -> toggleFiltering(true));
+				if (filteringEnabled)
+				{
+					menuManager.addManagedCustomMenu(DISABLE_MENU_FIXED, e -> toggleFiltering(false));
+					menuManager.addManagedCustomMenu(DISABLE_MENU_RESIZE_A, e -> toggleFiltering(false));
+					menuManager.addManagedCustomMenu(DISABLE_MENU_RESIZE_B, e -> toggleFiltering(false));
+				} else
+				{
+					menuManager.addManagedCustomMenu(ENABLE_MENU_FIXED, e -> toggleFiltering(true));
+					menuManager.addManagedCustomMenu(ENABLE_MENU_RESIZE_A, e -> toggleFiltering(true));
+					menuManager.addManagedCustomMenu(ENABLE_MENU_RESIZE_B, e -> toggleFiltering(true));
+				}
+
+				if(modifyOpHotkeyHeld && noLoadOps){
+					return;
+				}
+
 			}
 
 			for (String preset : presets)

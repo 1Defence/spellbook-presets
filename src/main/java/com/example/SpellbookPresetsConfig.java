@@ -27,8 +27,10 @@ package com.example;
 import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
+import net.runelite.client.config.Keybind;
 
 import java.awt.*;
+import java.awt.event.KeyEvent;
 
 @ConfigGroup(SpellbookPresetsConfig.GROUP)
 public interface SpellbookPresetsConfig extends Config
@@ -44,6 +46,11 @@ public interface SpellbookPresetsConfig extends Config
 
 	String CURRENT_OPTION_COLOR_KEY = "currentOpCustomColor";
 
+	String MODIFY_OPTION_RENDER_KEY = "moidfyOpRenderStyle";
+	String MODIFY_OPTION_HOTKEY_KEY = "modifyOpsHotkey";
+
+	String NO_LOAD_OPTIONS_KEY = "noLoadOps";
+
 	//in the situation that our data formatting/saving/loading changes. the version allows us to know how to handle migration.
 	//for now it just gets set and exists.
 	String LAST_VERSION_KEY = "version";
@@ -52,6 +59,8 @@ public interface SpellbookPresetsConfig extends Config
 	enum SWAP_MODE { SWAP, INSERT}
 
 	enum CURRENT_OPTION_STYLE {STANDARD, GREY_OUT, CUSTOM_COLOR, NO_RENDER}
+
+	enum MODIFY_OPTION_STYLE {ALWAYS_RENDER,HOTKEY}
 
 	@ConfigItem(
 			position = 0,
@@ -95,5 +104,38 @@ public interface SpellbookPresetsConfig extends Config
 	default Color currentOptionCustomColor()
 	{
 		return new Color(37, 150, 190);
+	}
+
+	@ConfigItem(
+			position = 4,
+			keyName = MODIFY_OPTION_RENDER_KEY,
+			name = "Modify Render",
+			description = "The rendering style of the Edit-preset and Hide-preset options"
+	)
+	default MODIFY_OPTION_STYLE modifyOptionRendering()
+	{
+		return MODIFY_OPTION_STYLE.ALWAYS_RENDER;
+	}
+
+	@ConfigItem(
+			position = 5,
+			keyName = MODIFY_OPTION_HOTKEY_KEY,
+			name = "Modify Key",
+			description = "Holding this key renders the edit and hide preset options on spellbook right-click, when Modify Render is set to [Hotkey]"
+	)
+	default Keybind modifyOptionsKey()
+	{
+		return new Keybind(KeyEvent.VK_E, 0);
+	}
+
+	@ConfigItem(
+			position = 6,
+			keyName = NO_LOAD_OPTIONS_KEY,
+			name = "No Load Ops",
+			description = "When hotkey is held, load preset options won't be rendered"
+	)
+	default boolean noLoadOps()
+	{
+		return true;
 	}
 }
