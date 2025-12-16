@@ -48,6 +48,8 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.example.SpellbookPresetsConfig.ACTIVE_PRESETS_KEY;
 import static com.example.SpellbookPresetsConfig.GROUP;
@@ -61,6 +63,10 @@ public class SaveEditPanel extends PluginPanel
 
     //arbitrary cap on presets, even 10 is high may reduce in future.
     private static int MAX_ACTIVE_PRESETS_COUNT = 10;
+    //"name (garbage) (number)"
+    Pattern importCopyPattern = Pattern.compile("^(.+?)\\s*\\((\\d+)\\)$");
+    //"Preset #"
+    Pattern newPresetPattern = Pattern.compile("^Preset\\s*(\\d+)$");
     private final IconTextField searchBar;
     public String queryText = "";
     private Timer configUpdateTimer;
@@ -220,7 +226,7 @@ public class SaveEditPanel extends PluginPanel
                 stashedImport.preset = presetName;
                 String messagePrompt = "Import preset (" + presetName + ") ?";
 
-                int confirm = JOptionPane.showConfirmDialog(this, messagePrompt, "Confirm", JOptionPane.YES_NO_OPTION);
+                int confirm = JOptionPane.showConfirmDialog(headerContainer, messagePrompt, "Confirm", JOptionPane.YES_NO_OPTION);
                 if (confirm == JOptionPane.YES_OPTION)
                 {
                     System.out.println("Importing " + stashedImport.preset + " : " + stashedImport.data);
@@ -278,7 +284,7 @@ public class SaveEditPanel extends PluginPanel
      * rebuilds the list of inactive saves that contain the query text*/
     public void SetSearchQuery(){
         if(searchBar != null){
-            queryText = searchBar.getText();
+            queryText = searchBar.getText().toLowerCase();
         }
         rebuildActiveList();
         rebuildInactiveList(true);
@@ -379,7 +385,7 @@ public class SaveEditPanel extends PluginPanel
 
         for(String presetName : inactivePresetList)
         {
-            if(!queryText.isEmpty() && !presetName.contains(queryText)){
+            if(!queryText.isEmpty() && !presetName.toLowerCase().contains(queryText)){
                 //filters presets to only show if name contains search text
                 continue;
             }
@@ -731,10 +737,9 @@ public class SaveEditPanel extends PluginPanel
         }
     };
 
-    /**config stuff to prevent stressing the configmanager, there is no need to update 10 times a second if user is spam dragging/swapping actives
-     * for now it's only for actives, because saves are modifed at a much less frequent rate(Addition,rename,deletion) and need to be immediate for stability.*/
-
-    /**Request an update to config, if theres a pending update refresh the timer, otherwise set and start it.*/
+    /**config functions to prevent stressing the configmanager, there is no need to update 10 times a second if user is spam dragging/swapping actives
+     * for now it's only for actives, because saves are modifed at a much less frequent rate(Addition,rename,deletion) and need to be immediate for stability.
+     * request an update to config, if theres a pending update refresh the timer, otherwise set and start it.*/
     private void requestConfigUpdate(){
         if(configUpdateTimer != null){
             configUpdateTimer.restart();
@@ -759,56 +764,65 @@ public class SaveEditPanel extends PluginPanel
         System.out.println("updating configs... "+json);
         configUpdateTimer = null;
     }
-    /***/
+
 
     /**find the next valid name of the given import
      * used if the name of the import already exists in the users saves.
-     * "PVM" would turn into "PVM (1)", the next import would turn into "PVM (2)" and so on*/
-    public String getNextAvailableImport(String baseString) {
-        int maxNumber = 0;
+     * appends (1),(2)..... to the preset name
+     * incremented number if the name we're checking already has a number or if the resulting new string exists
+     * ex: import is "pvm"
+     * import 1, "pvm"
+     * import 2, "pvm (1)"
+     * import 3, "pvm (2)"
+     * if you now import "pvm (1)", "pvm (3)"*/
+    public String getNextAvailableImport(String preset) {
 
-        for (String name : savedPresetList) {
-            if (name != null && name.startsWith(baseString)) {
-                String number = name.substring(baseString.length())
-                        .replace("(", "")
-                        .replace(")", "")
-                        .trim();
-                try {
-                    int num = Integer.parseInt(number);
-                    if (num > maxNumber) {
-                        maxNumber = num;
-                    }
-                } catch (NumberFormatException ignored) {
-                    //ignore NAN
-                }
+        preset = preset.trim();
+
+        Matcher matcher = importCopyPattern.matcher(preset);
+        String baseName;
+        int count = 1;
+
+        if (matcher.matches()) {
+            baseName = matcher.group(1).trim();
+            try {
+                count = Integer.parseInt(matcher.group(2))+1;
+            } catch (NumberFormatException e) {
+                //NaN
+                baseName = preset;
             }
+        } else {
+            baseName = preset;
         }
-        int nextNumber = maxNumber+1;
-        return baseString +" ("+nextNumber+")";
+
+        String importName = baseName;
+        while (savedPresetList.contains(importName)) {
+            importName = baseName + " (" + count + ")";
+            count++;
+        }
+
+        return importName;
     }
 
     /**find the next valid preset name
      * used when creating a new preset to generate the default name
      * "Preset 1", "Preset 2" .....*/
     public String getNextAvailablePreset() {
-        String baseString = "Preset ";
-        int maxNumber = 0;
 
+        int maxNumber = 0;
         for (String name : savedPresetList) {
-            if (name != null && name.startsWith(baseString)) {
-                String number = name.substring(baseString.length()).trim();
-                try {
-                    int num = Integer.parseInt(number);
+            if (name != null) {
+                Matcher matcher = newPresetPattern.matcher(name.trim());
+                if (matcher.matches()) {
+                    int num = Integer.parseInt(matcher.group(1));
                     if (num > maxNumber) {
                         maxNumber = num;
                     }
-                } catch (NumberFormatException ignored) {
-                    //ignore NAN
                 }
             }
         }
-        int nextNumber = maxNumber+1;
-        return baseString+nextNumber;
+
+        return "Preset " + (maxNumber + 1);
     }
 
     /**When a drastic change has occurred and an entire reset on the panel is required
