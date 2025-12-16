@@ -71,7 +71,7 @@ public class SaveEditPanel extends PluginPanel
     Pattern newPresetPattern = Pattern.compile("^Preset\\s*(\\d+)$");
     private final IconTextField searchBar;
     public String queryText = "";
-    private Timer configUpdateTimer;
+    public Timer configUpdateTimer;
 
     /**Row Containers*/
     private final JPanel inactivePresetsContainer;
@@ -760,7 +760,7 @@ public class SaveEditPanel extends PluginPanel
     }
 
     /**immediate update called when delay timer(configUpdateTimer) has finished.*/
-    private void updateConfig(){
+    public void updateConfig(){
         String json = gson.toJson(activePresetList);
         configManager.setConfiguration(GROUP, ACTIVE_PRESETS_KEY, json);
         log.debug("updating configs... "+json);

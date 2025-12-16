@@ -53,6 +53,7 @@ import net.runelite.api.ItemComposition;
 import net.runelite.api.ParamID;
 import net.runelite.api.ScriptID;
 import net.runelite.api.events.DraggingWidgetChanged;
+import net.runelite.api.events.MenuEntryAdded;
 import net.runelite.api.events.ScriptCallbackEvent;
 import net.runelite.api.events.ScriptPreFired;
 import net.runelite.api.gameval.InterfaceID;
@@ -630,6 +631,18 @@ public class SpellbookPresetsPlugin extends Plugin
 
 		System.arraycopy(newSpells, 0, spells, 0, numNewSpells);
 		stack[size - 1] = numSpells = numNewSpells;
+	}
+
+	/**If theres a pending config change and user is about to rightclick the spellbook, instantly update the config and thus the options.
+	 * move functionality if theres ever an event for cursor leaving the panel.*/
+	@Subscribe
+	public void onMenuEntryAdded(MenuEntryAdded e){
+		if(sidePanel.configUpdateTimer == null)
+			return;
+		if(e.getOption().equals("Magic")){
+			sidePanel.configUpdateTimer.stop();
+			sidePanel.updateConfig();
+		}
 	}
 
 	/**Slight changes to SpellbookPlugin, added null check for widget so shutdown doesn't cause NPE*/
