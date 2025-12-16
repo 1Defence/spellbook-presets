@@ -78,11 +78,20 @@ public class PresetRowPanel extends JPanel
         if(plugin.renameSpellbooks(originalName,updatedName)){
             presetName = updatedName;
             presetNameOutputField.setText(presetName);
-            presetListHandle.remove(originalName);
-            presetListHandle.add(presetName);
 
-            savedPresetList.remove(originalName);
-            savedPresetList.add(presetName);
+            //modify the name in actives/inactives list
+            int handleIndex = presetListHandle.indexOf(originalName);
+            if (handleIndex != -1) {
+                presetListHandle.set(handleIndex, presetName);
+            }
+
+            //modify the name in saves list if present, add it otherwise
+            int saveIndex = savedPresetList.indexOf(originalName);
+            if (saveIndex != -1) {
+                savedPresetList.set(saveIndex, presetName);
+            }else{
+                savedPresetList.add(presetName);
+            }
 
             //attempt to change to the new preset.
             if(plugin.currentPreset.equals(originalName)){

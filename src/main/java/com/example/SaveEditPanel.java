@@ -447,6 +447,7 @@ public class SaveEditPanel extends PluginPanel
                 if (e.getKeyCode() == KeyEvent.VK_ENTER)
                 {
                     row.ChangePresetName();
+                    requestConfigUpdate();
                 }
                 else if (e.getKeyCode() == KeyEvent.VK_ESCAPE)
                 {
@@ -560,6 +561,7 @@ public class SaveEditPanel extends PluginPanel
             public void mousePressed(MouseEvent mouseEvent)
             {
                 row.ChangePresetName();
+                requestConfigUpdate();
             }
 
             @Override
