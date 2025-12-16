@@ -847,8 +847,8 @@ public class SpellbookPresetsPlugin extends Plugin
 	private void setHidden(int spellbookId, int spellId, boolean hidden) {
 		Map<Integer, SpellData> book = spellbooks.computeIfAbsent(spellbookId, k -> new HashMap<>());
 
-		SpellData spell = book.computeIfAbsent(spellId, k -> new SpellData(spellId, -1, false));
-		spell.h = hidden;
+		SpellData spell = book.computeIfAbsent(spellId, k -> new SpellData(-1, false));
+		spell.setHidden(hidden);
 
 		if (spell.isUnused()) {
 			book.remove(spellId);
@@ -859,8 +859,8 @@ public class SpellbookPresetsPlugin extends Plugin
 	private void setPosition(int spellbookId, int spellId, int position) {
 		Map<Integer, SpellData> book = spellbooks.computeIfAbsent(spellbookId, k -> new HashMap<>());
 
-		SpellData spell = book.computeIfAbsent(spellId, k -> new SpellData(spellId, -1, false));
-		spell.p = position;
+		SpellData spell = book.computeIfAbsent(spellId, k -> new SpellData(-1, false));
+		spell.setPosition(position);
 
 		if (spell.isUnused()) {
 			book.remove(spellId);
