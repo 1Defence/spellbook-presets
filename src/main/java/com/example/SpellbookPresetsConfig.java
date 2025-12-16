@@ -12,6 +12,11 @@ public interface SpellbookPresetsConfig extends Config
 	String SHOW_ALL_IF_EMPTY_KEY = "showAllIfEmpty";
 	String SPELL_MOVE_MODE_KEY = "spellMoveMode";
 
+	//in the situation that our data formatting/saving/loading changes. the version allows us to know how to handle migration.
+	//for now it just gets set and exists.
+	String LAST_VERSION_KEY = "version";
+	String LIVE_VERSION_STRING = "1.0.0";
+
 	enum SWAP_MODE { SWAP, INSERT}
 
 	@ConfigItem(

@@ -180,6 +180,9 @@ public class SpellbookPresetsPlugin extends Plugin
 	@Override
 	protected void startUp()
 	{
+		//currently just sets and exists, used for future migration if data handling changes.
+		configManager.setConfiguration(GROUP,LAST_VERSION_KEY, LIVE_VERSION_STRING);
+
 		cacheConfigs();
 		updatePreset();
 		filteringEnabled = true;
