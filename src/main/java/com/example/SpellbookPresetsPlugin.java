@@ -31,6 +31,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.google.inject.Provides;
 
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -80,6 +81,8 @@ import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.util.ImageUtil;
 
+import net.runelite.client.util.ColorUtil;
+
 @PluginDescriptor(
 		name = "Spellbook Presets",
 		description = "Filtered spellbook presets, select spells you want to show for each given preset",
@@ -124,6 +127,8 @@ public class SpellbookPresetsPlugin extends Plugin
 
 	private static final String DISABLE = "Hide preset";
 	private static final String ENABLE = "Show preset";
+
+	private static final Color MENU_NAME_COLOR = new Color(255, 144, 64);
 
 	//menu ops for the 3 client sizes for editing/saving a preset & hiding/showing a preset
 	private static final int FIXED_MAGIC_TAB_ID = InterfaceID.Toplevel.STONE6;
@@ -333,8 +338,15 @@ public class SpellbookPresetsPlugin extends Plugin
 		}
 		else
 		{
+
+			String currentPresetColored = ColorUtil.wrapWithColorTag(currentPreset, MENU_NAME_COLOR);
+			String currentOp = "Edit "+currentPresetColored;
+
+			UNLOCK_MENU_FIXED.setMenuOption(currentOp);
 			menuManager.addManagedCustomMenu(UNLOCK_MENU_FIXED, e -> reordering(true));
+			UNLOCK_MENU_RESIZE_A.setMenuOption(currentOp);
 			menuManager.addManagedCustomMenu(UNLOCK_MENU_RESIZE_A, e -> reordering(true));
+			UNLOCK_MENU_RESIZE_B.setMenuOption(currentOp);
 			menuManager.addManagedCustomMenu(UNLOCK_MENU_RESIZE_B, e -> reordering(true));
 
 			if(filteringEnabled){
@@ -349,7 +361,8 @@ public class SpellbookPresetsPlugin extends Plugin
 
 			for (String preset : presets)
 			{
-				String option = "Load preset ("+preset+")";
+				String presetColored = ColorUtil.wrapWithColorTag(preset, MENU_NAME_COLOR);
+				String option = "Load "+presetColored;
 
 				WidgetMenuOption unlockFixed = new WidgetMenuOption(option, "", FIXED_MAGIC_TAB_ID);
 				menuManager.addManagedCustomMenu(unlockFixed, e -> changePreset(preset));
