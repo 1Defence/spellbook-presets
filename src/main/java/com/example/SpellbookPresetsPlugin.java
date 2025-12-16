@@ -155,7 +155,6 @@ public class SpellbookPresetsPlugin extends Plugin
 	private static final WidgetMenuOption ENABLE_MENU_RESIZE_B = new WidgetMenuOption(ENABLE, "", RESIZABLE_B_MAGIC_TABID);
 
 
-	private final String DEFAULT_PRESET = "Default";
 	private final int visibleOpacity = 0;
 	private final int hiddenOpacity = 200;
 
@@ -337,6 +336,12 @@ public class SpellbookPresetsPlugin extends Plugin
 	private void refreshReorderMenus()
 	{
 		clearReoderMenus();
+
+		if(presets.isEmpty())
+		{
+			return;
+		}
+
 		if (reordering)
 		{
 			menuManager.addManagedCustomMenu(LOCK_MENU_FIXED, e -> reordering(false));
@@ -400,12 +405,16 @@ public class SpellbookPresetsPlugin extends Plugin
 
 	/**update the current preset after changes have occured*/
 	private void updatePreset(){
-		if(presets.isEmpty()){
-			//if no presets, the "Default" preset is used.
-			//this allows the default preset to be deleted and means the plugin has the same functionality without any active presets.
-			changePreset(DEFAULT_PRESET);
-		}else if(currentPreset.isEmpty() || (currentPreset.equals(DEFAULT_PRESET) && !presets.contains(DEFAULT_PRESET) || !presets.contains(currentPreset))){
-			//no current preset, but active presets exist, default to the first active preset
+		if(presets.isEmpty() ){
+			//if no presets, cleanup spellbook and menu ops similar to a shutdown
+			clientThread.invokeLater(() ->
+			{
+				clearReoderMenus();
+				cleanupSpellbook();
+				reinitializeSpellbook();
+			});
+		}else if(currentPreset.isEmpty() || !presets.contains(currentPreset)){
+			//list of actives exists, current preset is blank or no longer part of the active presets list, default to the first active preset
 			changePreset(presets.get(0));
 		}else{
 			//current preset active and exists, it's likely changed in some other manner refresh it.
@@ -568,10 +577,11 @@ public class SpellbookPresetsPlugin extends Plugin
 		// the specified book has no modifications and the user wants all spells to be displayed in said situation.
 		// this likely makes more sense than displaying an empty book.
 		// additionally, if the user has temporarily disabled filtering (e.x to use a one off teleport) display the entire spellbook.
+		// if the user has no presets active, display spellbook as normal.
 		Map<Integer, SpellData> book = spellbooks.get(spellbookEnumId);
 		boolean bookIsEmpty = book == null || book.isEmpty();
 		if(!reordering
-				&& ((bookIsEmpty && showAllIfEmpty) || !filteringEnabled)){
+				&& ((bookIsEmpty && showAllIfEmpty) || !filteringEnabled || presets.isEmpty())){
 			cleanupSpells(spellbookEnumId);
 			return;
 		}
@@ -764,6 +774,8 @@ public class SpellbookPresetsPlugin extends Plugin
 	/**called on shutdown, removes hide/unhide ops and restores opacity to all spells & deletes red warning pane if present.*/
 	private void cleanupSpellbook()
 	{
+		reordering = false;
+
 		Widget w = client.getWidget(InterfaceID.MagicSpellbook.UNIVERSE);
 		if(w != null)
 		{
