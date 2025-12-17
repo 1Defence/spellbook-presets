@@ -54,6 +54,8 @@ public interface SpellbookPresetsConfig extends Config
 
 	String OPEN_TAB_CONDITION_KEY = "openTabCondition";
 
+	String DISPLAY_PRESETS_PANEL_KEY = "displayPresetsPanel";
+
 	//in the situation that our data formatting/saving/loading changes. the version allows us to know how to handle migration.
 	//for now it just gets set and exists.
 	String LAST_VERSION_KEY = "version";
@@ -122,6 +124,18 @@ public interface SpellbookPresetsConfig extends Config
 
 	@ConfigItem(
 			position = 3,
+			keyName = DISPLAY_PRESETS_PANEL_KEY,
+			name = "Display Presets Panel",
+			description = "[WARNING] You will NOT be able to create,delete,rename or move presets with this disabled!. Configures whether the presets side panel should be displayed.",
+			section = defaultPanel
+	)
+	default boolean displayPresetsPanel()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+			position = 4,
 			keyName = CURRENT_OPTION_RENDER_KEY,
 			name = "Current Render",
 			description = "The rendering style of the load menu option for the currently enabled preset",
@@ -133,7 +147,7 @@ public interface SpellbookPresetsConfig extends Config
 	}
 
 	@ConfigItem(
-			position = 4,
+			position = 5,
 			keyName = CURRENT_OPTION_COLOR_KEY,
 			name = "Current Custom Color",
 			description = "The custom color used for the current load menu option, when Current Render is set to [Custom Coloring]",
@@ -145,7 +159,7 @@ public interface SpellbookPresetsConfig extends Config
 	}
 
 	@ConfigItem(
-			position = 5,
+			position = 6,
 			keyName = MODIFY_OPTION_RENDER_KEY,
 			name = "Modify Render",
 			description = "The rendering style of the Edit-preset and Hide-preset options",
@@ -157,7 +171,7 @@ public interface SpellbookPresetsConfig extends Config
 	}
 
 	@ConfigItem(
-			position = 6,
+			position = 7,
 			keyName = MODIFY_OPTION_HOTKEY_KEY,
 			name = "Modify Key",
 			description = "Holding this key renders the edit and hide preset options on spellbook right-click, when Modify Render is set to [Hotkey]",
@@ -169,7 +183,7 @@ public interface SpellbookPresetsConfig extends Config
 	}
 
 	@ConfigItem(
-			position = 7,
+			position = 8,
 			keyName = NO_LOAD_OPTIONS_KEY,
 			name = "No Load Ops",
 			description = "When hotkey is held, load preset options won't be rendered",

@@ -176,6 +176,7 @@ public class SpellbookPresetsPlugin extends Plugin
 	private MODIFY_OPTION_STYLE configModifyOpRenderStyle;
 	private boolean configNoLoadOps = false;
 	private OPEN_TAB_CONDITION configOpenTabCondition;
+	private boolean configDisplayPresetsPanel = false;
 	private boolean modifyOpHotkeyHeld = false;
 
 	@Getter(AccessLevel.PACKAGE)
@@ -244,7 +245,10 @@ public class SpellbookPresetsPlugin extends Plugin
 				.panel(sidePanel)
 				.build();
 
-		clientToolbar.addNavigation(navButton_panel);
+		if(configDisplayPresetsPanel)
+		{
+			clientToolbar.addNavigation(navButton_panel);
+		}
 	}
 
 	@Override
@@ -283,6 +287,7 @@ public class SpellbookPresetsPlugin extends Plugin
 		configModifyOpRenderStyle = config.modifyOptionRendering();
 		configNoLoadOps = config.noLoadOps();
 		configOpenTabCondition = config.openTabCondition();
+		configDisplayPresetsPanel = config.displayPresetsPanel();
 	}
 
 	/**updates current preset if actives no longer contains it*/
@@ -333,6 +338,15 @@ public class SpellbookPresetsPlugin extends Plugin
 				break;
 			case OPEN_TAB_CONDITION_KEY:
 				configOpenTabCondition = config.openTabCondition();
+				break;
+			case DISPLAY_PRESETS_PANEL_KEY:
+				configDisplayPresetsPanel = config.displayPresetsPanel();
+				if(configDisplayPresetsPanel)
+				{
+					clientToolbar.addNavigation(navButton_panel);
+				}else{
+					clientToolbar.removeNavigation(navButton_panel);
+				}
 				break;
 
 		}
