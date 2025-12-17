@@ -181,7 +181,7 @@ public class SpellbookPresetsPlugin extends Plugin
 
 	@Getter(AccessLevel.PACKAGE)
 	private List<String> presets = new ArrayList<>();
-	private List<WidgetMenuOption> managedMenus = new ArrayList<>();
+	private final List<WidgetMenuOption> managedMenus = new ArrayList<>();
 
 	private Map<Integer, Map<Integer, SpellData>> spellbooks = new HashMap<>();
 

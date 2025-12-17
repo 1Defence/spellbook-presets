@@ -64,7 +64,7 @@ public class SaveEditPanel extends PluginPanel
     Gson gson;
 
     //arbitrary cap on presets, even 10 is high may reduce in future.
-    private static int MAX_ACTIVE_PRESETS_COUNT = 10;
+    private static final int MAX_ACTIVE_PRESETS_COUNT = 10;
     //"name (garbage) (number)"
     Pattern importCopyPattern = Pattern.compile("^(.+?)\\s*\\((\\d+)\\)$");
     //"Preset #"
@@ -553,7 +553,6 @@ public class SaveEditPanel extends PluginPanel
                 nameInput);
 
 
-        /** Buttons--*/
         //Save a preset name change
         save.addMouseListener(new MouseAdapter()
         {
@@ -659,7 +658,6 @@ public class SaveEditPanel extends PluginPanel
                 cancel,
                 exportBtn,
                 deleteBtn);
-        /** Buttons-*/
 
 
         //+Name --------- Rename [ ] [ ]
