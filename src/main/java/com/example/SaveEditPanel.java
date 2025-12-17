@@ -633,6 +633,7 @@ public class SaveEditPanel extends PluginPanel
         //Delete button
         JButton deleteBtn = CreateButton("Delete",DELETE_ICON);
         deleteBtn.addActionListener(e -> {
+            forcePendingConfig();
             String rowPresetName = row.GetPresetName();
             int confirm = JOptionPane.showConfirmDialog(this, "Delete \"" + rowPresetName + "\"?", "Confirm", JOptionPane.YES_NO_OPTION);
             if (confirm == JOptionPane.YES_OPTION) {
@@ -768,6 +769,14 @@ public class SaveEditPanel extends PluginPanel
         configManager.setConfiguration(GROUP, ACTIVE_PRESETS_KEY, json);
         log.debug("updating configs... "+json);
         configUpdateTimer = null;
+    }
+
+    /**If theres a pending config change instantly update the config and thus the options.*/
+    public void forcePendingConfig(){
+        if(configUpdateTimer == null)
+            return;
+        configUpdateTimer.stop();
+        updateConfig();
     }
 
 

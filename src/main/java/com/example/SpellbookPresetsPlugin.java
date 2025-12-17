@@ -795,8 +795,7 @@ public class SpellbookPresetsPlugin extends Plugin
 		if(sidePanel.configUpdateTimer == null)
 			return;
 		if(e.getOption().equals("Magic")){
-			sidePanel.configUpdateTimer.stop();
-			sidePanel.updateConfig();
+			sidePanel.forcePendingConfig();
 		}
 	}
 
