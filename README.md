@@ -22,7 +22,7 @@ https://github.com/user-attachments/assets/ca116cf7-f620-47e3-94a4-5aca69cc69f6
 # Modify Options Style
 https://github.com/user-attachments/assets/8bd0e5c2-c7e3-433d-87c4-e30008732ec9
 
-# Spellbook Presets config options
+# General config options
 
 * Show all if empty
 
