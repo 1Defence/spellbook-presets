@@ -1,28 +1,45 @@
 # Spellbook presets
-https://github.com/user-attachments/assets/3a19787d-bf95-47f3-9fbb-ac2ad7514fb0
+https://github.com/user-attachments/assets/e0f6838f-40a5-42e8-b526-a773d701a750
 
 
-# Only display the presets you want, keeping the rest stored.
-https://github.com/user-attachments/assets/8fd4b9bb-bf65-44a6-af42-8c1c1ed9d010
+
+# Only display the presets you want, Store the rest
+https://github.com/user-attachments/assets/26405c03-d032-4d85-8157-e424f5b39d92
+
 
 
 # Creating a preset
-https://github.com/user-attachments/assets/d10f0cb7-f191-4615-bfe4-8922c72ac844
+https://github.com/user-attachments/assets/fd737a33-f17e-472e-8505-bc2fafd0675a
 
-
-# Resetting a preset
--Remove the name from the list of saves
-
-https://github.com/user-attachments/assets/a3a50e9c-7e3c-47e2-a9cc-fc34df5f8d6d
-
-# Removing a preset
--Remove the name from both lists
-
-https://github.com/user-attachments/assets/39020766-1d51-4563-ad3e-cbd19f46d2a9
 
 # Temporarily disable presets without disabling the plugin
-https://github.com/user-attachments/assets/e8ddf9a0-05b0-406b-8f43-a399cdfed346
+https://github.com/user-attachments/assets/234c5c13-1c9b-4456-a2af-963f7619016e
 
 
-# Change edit mode between swap and insert
-https://github.com/user-attachments/assets/9cc23bb2-5fda-43ea-8af6-46a2e63832e2
+# Current Option Style
+https://github.com/user-attachments/assets/ca116cf7-f620-47e3-94a4-5aca69cc69f6
+
+# Modify Options Style
+https://github.com/user-attachments/assets/8bd0e5c2-c7e3-433d-87c4-e30008732ec9
+
+# Spellbook Presets config options
+
+* Show all if empty
+
+https://github.com/user-attachments/assets/a5ab2b36-d080-4853-bc57-d150bafe5687
+
+* Spell move mode
+
+https://github.com/user-attachments/assets/c2a74ea3-c4b1-4d25-9af6-fe3c42f99b83
+
+* Open tab
+
+https://github.com/user-attachments/assets/ab32bc92-8eb2-469d-8319-b93a131f5725
+
+* Open tab
+
+https://github.com/user-attachments/assets/ab32bc92-8eb2-469d-8319-b93a131f5725
+
+* Display presets panel
+
+https://github.com/user-attachments/assets/19af2273-a1cb-4610-b39f-b6991f768f9f
