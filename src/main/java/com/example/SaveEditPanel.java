@@ -627,24 +627,25 @@ public class SaveEditPanel extends PluginPanel
         JButton exportBtn = CreateButton("Export", EXPORT_ICON);
         exportBtn.addActionListener(e -> {
             row.Export();
-            log.debug("Exporting " + presetName);
+            log.debug("Exporting " + row.GetPresetName());
         });
 
         //Delete button
         JButton deleteBtn = CreateButton("Delete",DELETE_ICON);
         deleteBtn.addActionListener(e -> {
-            int confirm = JOptionPane.showConfirmDialog(this, "Delete \"" + presetName + "\"?", "Confirm", JOptionPane.YES_NO_OPTION);
+            String rowPresetName = row.GetPresetName();
+            int confirm = JOptionPane.showConfirmDialog(this, "Delete \"" + rowPresetName + "\"?", "Confirm", JOptionPane.YES_NO_OPTION);
             if (confirm == JOptionPane.YES_OPTION) {
-                log.debug("Deleting " + presetName);
+                log.debug("Deleting " + rowPresetName);
                 if(active){
-                    activePresetList.remove(presetName);
+                    activePresetList.remove(rowPresetName);
                     requestConfigUpdate();
                 }else
                 {
-                    inactivePresetList.remove(presetName);
+                    inactivePresetList.remove(rowPresetName);
                 }
-                savedPresetList.remove(presetName);
-                plugin.removeSpellbooksKey(presetName);
+                savedPresetList.remove(rowPresetName);
+                plugin.removeSpellbooksKey(rowPresetName);
                 rebuildActiveList();
                 rebuildInactiveList(true);
             }
