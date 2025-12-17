@@ -142,6 +142,6 @@ public class PresetRowPanel extends JPanel
 
     /**Export Row's preset and saves to clipboard*/
     public void Export(){
-        plugin.selectionHandler.exportPreset(GetPresetName());
+        plugin.importExportHandler.exportPreset(GetPresetName());
     }
 }

@@ -117,7 +117,7 @@ public class SpellbookPresetsPlugin extends Plugin
 	private SpellbookPresetsConfig config;
 
 	@Inject
-	public ImportExportHandler selectionHandler;
+	public ImportExportHandler importExportHandler;
 
 	@Inject
 	private ClientToolbar clientToolbar;

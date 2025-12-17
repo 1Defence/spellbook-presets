@@ -217,7 +217,7 @@ public class SaveEditPanel extends PluginPanel
 
 
         importButton.addActionListener(e -> {
-            SpellbookPresetJsonObject stashedImport = plugin.selectionHandler.StashImportObject();
+            SpellbookPresetJsonObject stashedImport = plugin.importExportHandler.StashImportObject();
             if(stashedImport != null)
             {
                 String presetName = stashedImport.preset;
@@ -232,7 +232,7 @@ public class SaveEditPanel extends PluginPanel
                 if (confirm == JOptionPane.YES_OPTION)
                 {
                     log.debug("Importing " + stashedImport.preset + " : " + stashedImport.data);
-                    plugin.selectionHandler.confirmImport(stashedImport);
+                    plugin.importExportHandler.confirmImport(stashedImport);
                     AddNewPresetToCollection(presetName,exists);
                 }
 
