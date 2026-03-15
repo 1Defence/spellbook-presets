@@ -311,6 +311,9 @@ public class SpellbookPresetsPlugin extends Plugin
 				break;
 			case ACTIVE_PRESETS_KEY:
 				presets = activePresetsFromConfig();
+				if(presets.isEmpty()){
+					currentPreset = "";
+				}
 				if(!presets.contains(currentPreset)){
 					//current preset should no longer be active, update it.
 					updatePreset();
