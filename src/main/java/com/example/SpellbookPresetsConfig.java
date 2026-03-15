@@ -52,6 +52,8 @@ public interface SpellbookPresetsConfig extends Config
 
 	String NO_LOAD_OPTIONS_KEY = "noLoadOps";
 
+	String FILTERING_OPTIONS_KEY = "filteringOps";
+
 	String OPEN_TAB_CONDITION_KEY = "openTabCondition";
 
 	String DISPLAY_PRESETS_PANEL_KEY = "displayPresetsPanel";
@@ -66,6 +68,8 @@ public interface SpellbookPresetsConfig extends Config
 	enum CURRENT_OPTION_STYLE {STANDARD, GREY_OUT, CUSTOM_COLOR, NO_RENDER}
 
 	enum MODIFY_OPTION_STYLE {ALWAYS_RENDER,HOTKEY}
+
+	enum FILTERING_OPTION_STYLE {HIDE_BOTH,HIDE_DISABLE,HIDE_ENABLE,HOTKEY_SHOW,UNCHANGED}
 
 	enum OPEN_TAB_CONDITION {
 		NONE(0),
@@ -193,4 +197,13 @@ public interface SpellbookPresetsConfig extends Config
 	{
 		return true;
 	}
+
+	@ConfigItem(
+			position = 9,
+			keyName = FILTERING_OPTIONS_KEY,
+			name = "Filtering Ops",
+			description = "Situational to show disable/enable filtering (base client) options | note: Hotkey only works if Modify Render is set to hotkey",
+			section = modifyOptionStylePanel
+	)
+	default FILTERING_OPTION_STYLE filteringOps(){return FILTERING_OPTION_STYLE.UNCHANGED;}
 }

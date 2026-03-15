@@ -175,6 +175,7 @@ public class SpellbookPresetsPlugin extends Plugin
 	private Color configCurrentOpCustomColor;
 	private MODIFY_OPTION_STYLE configModifyOpRenderStyle;
 	private boolean configNoLoadOps = false;
+	private FILTERING_OPTION_STYLE configFilteringOps;
 	private OPEN_TAB_CONDITION configOpenTabCondition;
 	private boolean configDisplayPresetsPanel = false;
 	private boolean modifyOpHotkeyHeld = false;
@@ -286,6 +287,7 @@ public class SpellbookPresetsPlugin extends Plugin
 		configCurrentOpCustomColor = config.currentOptionCustomColor();
 		configModifyOpRenderStyle = config.modifyOptionRendering();
 		configNoLoadOps = config.noLoadOps();
+		configFilteringOps = config.filteringOps();
 		configOpenTabCondition = config.openTabCondition();
 		configDisplayPresetsPanel = config.displayPresetsPanel();
 	}
@@ -335,6 +337,9 @@ public class SpellbookPresetsPlugin extends Plugin
 				break;
 			case NO_LOAD_OPTIONS_KEY:
 				configNoLoadOps = config.noLoadOps();
+				break;
+			case FILTERING_OPTIONS_KEY:
+				configFilteringOps = config.filteringOps();
 				break;
 			case OPEN_TAB_CONDITION_KEY:
 				configOpenTabCondition = config.openTabCondition();
@@ -789,14 +794,36 @@ public class SpellbookPresetsPlugin extends Plugin
 	}
 
 	/**If theres a pending config change and user is about to rightclick the spellbook, instantly update the config and thus the options.
-	 * move functionality if theres ever an event for cursor leaving the panel.*/
+	 * move functionality if theres ever an event for cursor leaving the panel.
+	 * situationally remove enable/disable spellbook filtering option, rarely ever used once set so it only serves confusion to remain as a visible op.*/
 	@Subscribe
 	public void onMenuEntryAdded(MenuEntryAdded e){
-		if(sidePanel.configUpdateTimer == null)
-			return;
-		if(e.getOption().equals("Magic")){
-			sidePanel.forcePendingConfig();
+		String op = e.getOption();
+		if(sidePanel.configUpdateTimer != null)
+		{
+			if (op.equals("Magic"))
+			{
+				sidePanel.forcePendingConfig();
+			}
 		}
+
+		if(configFilteringOps == FILTERING_OPTION_STYLE.UNCHANGED)
+			return;
+
+		boolean hideBoth = configFilteringOps == FILTERING_OPTION_STYLE.HIDE_BOTH || (configFilteringOps == FILTERING_OPTION_STYLE.HOTKEY_SHOW && !modifyOpHotkeyHeld);
+
+		if(op.equals("Enable spell filtering") && (hideBoth || configFilteringOps == FILTERING_OPTION_STYLE.HIDE_ENABLE)){
+			removeOption();
+		}
+
+		if(op.equals("Disable spell filtering") && (hideBoth || configFilteringOps == FILTERING_OPTION_STYLE.HIDE_DISABLE)){
+			removeOption();
+		}
+	}
+
+	/**Removes most recent menu option*/
+	public void removeOption(){
+		client.setMenuEntries(Arrays.copyOf(client.getMenuEntries(), client.getMenuEntries().length - 1));
 	}
 
 	/**Slight changes to SpellbookPlugin, added null check for widget so shutdown doesn't cause NPE*/
