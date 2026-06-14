@@ -219,22 +219,10 @@ public class SpellbookPresetsPlugin extends Plugin
 		configManager.setConfiguration(GROUP,LAST_VERSION_KEY, LIVE_VERSION_STRING);
 		cacheConfigs();
 
-		modifyOpHotkeyHeld = false;
 		if(configModifyOpRenderStyle == MODIFY_OPTION_STYLE.HOTKEY){
 			keyManager.registerKeyListener(modifyOptionsKeyListener);
 		}
-
-		String cachedPreset = configManager.getConfiguration(GROUP,CURRENT_PRESET_KEY);
-		if(!Strings.isNullOrEmpty(cachedPreset) && presets.contains(cachedPreset)){
-			changePreset(cachedPreset);
-		}else{
-			updatePreset();
-		}
-
-		filteringEnabled = true;
-		reordering = false;
-		refreshReorderMenus();
-		clientThread.invokeLater(this::reinitializeSpellbook);
+		initPluginProperties();
 
 		sidePanel = new SaveEditPanel(this, configManager, gson);
 
@@ -262,10 +250,31 @@ public class SpellbookPresetsPlugin extends Plugin
 		clientToolbar.removeNavigation(navButton_panel);
 	}
 
+	/**
+	 * Mostly startup properties, but needs to be reused in profile change as startup never occurs but relevant config values do change.
+	 */
+	void initPluginProperties(){
+		clientThread.invokeLater(() ->
+		{
+			String cachedPreset = configManager.getConfiguration(GROUP,CURRENT_PRESET_KEY);
+			if(!Strings.isNullOrEmpty(cachedPreset) && presets.contains(cachedPreset)){
+				changePreset(cachedPreset);
+			}else{
+				updatePreset();
+			}
+
+			modifyOpHotkeyHeld = false;
+			filteringEnabled = true;
+			reordering = false;
+			refreshReorderMenus();
+		});
+	}
+
 	@Subscribe
 	public void onProfileChanged(ProfileChanged event)
 	{
-		clientThread.invokeLater(this::redrawSpellbook);
+		initPluginProperties();
+		sidePanel.Refresh();
 	}
 
 	/**Generate preset list from config actives*/
