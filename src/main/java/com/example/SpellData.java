@@ -26,20 +26,33 @@ package com.example;
 
 public class SpellData
 {
+    public static int SPELL_HIDDEN = 0;
+    public static int SPELL_VISIBLE = 1;
+    public static int SPELL_SPACER = 2;
     //short names to reduce clutter and save space in serialized json
     int p;//spell position
-    int h;//spell hidden
+    int h;//spell render type (hidden,visible,spacer)
 
-    public SpellData(int position,boolean hidden){
+    public SpellData(int position,int spellRenderType){
         this.p = position;
-        this.h = convertBooleanToInt(hidden);
+        this.h = spellRenderType;
     }
 
     public int getPosition(){return p;}
-    public boolean getHidden(){return h == 1;}
+
+    //spellRenderType not default, has been modified to either be visible or a spacer.
+    public boolean isVisible(){return h == 1;}
+
+    public int getSpellRenderType(){return h;}
 
     public void setHidden(boolean hidden){
-        this.h = convertBooleanToInt(hidden);
+        this.h = hidden ? 1 : 0;
+    }
+
+    /** There is only one spacer state, if its not a spacer its a variation of hidden/visible.
+     */
+    public void setSpacer(){
+        this.h = 2;
     }
 
     public void setPosition(int position){
@@ -49,13 +62,6 @@ public class SpellData
     /**this indicates the spells values are default; as such we want to avoid saving the extra data to config.*/
     public boolean isUnused(){
         return p == -1 && h == 0;
-    }
-
-    /**storing boolean as an int to save space in the json
-     * this method converts the passed boolean into its integer value
-     */
-    public static int convertBooleanToInt(boolean hidden){
-        return hidden ? 1 : 0;
     }
 
 }

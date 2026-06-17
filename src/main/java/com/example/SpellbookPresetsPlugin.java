@@ -50,8 +50,11 @@ import net.runelite.api.Client;
 import net.runelite.api.EnumComposition;
 import net.runelite.api.EnumID;
 import net.runelite.api.ItemComposition;
+import net.runelite.api.MenuAction;
+import net.runelite.api.MenuEntry;
 import net.runelite.api.ParamID;
 import net.runelite.api.ScriptID;
+import net.runelite.api.events.PostMenuSort;
 import net.runelite.api.events.WidgetDrag;
 import net.runelite.api.events.MenuEntryAdded;
 import net.runelite.api.events.ScriptCallbackEvent;
@@ -130,6 +133,13 @@ public class SpellbookPresetsPlugin extends Plugin
 	// [proc,magic_spellbook_modifyops] shifts around ops, but seems to only use
 	// 1 2 3 4 5 10. So use 6 for Hide/Unhide.
 	private static final int HIDE_UNHIDE_OP = 6;
+	private static final int SPACER_OP = 7;
+
+	private static final int ORIGINAL_PRIORITY = 4;
+	private static final int CCOP_PRIORITY = MenuAction.CC_OP.getId();
+
+	private static final int BORDER_NONE = 0;
+	private static final int BORDER_WHITE = 2;
 
 	private static final String DISABLE = "Hide preset";
 	private static final String ENABLE = "Show preset";
@@ -178,6 +188,8 @@ public class SpellbookPresetsPlugin extends Plugin
 	private FILTERING_OPTION_STYLE configFilteringOps;
 	private OPEN_TAB_CONDITION configOpenTabCondition;
 	private boolean configDisplayPresetsPanel = false;
+	private int configReorderAntiDrag;
+	private boolean configForceHidePriority;
 	private boolean modifyOpHotkeyHeld = false;
 
 	@Getter(AccessLevel.PACKAGE)
@@ -299,6 +311,8 @@ public class SpellbookPresetsPlugin extends Plugin
 		configFilteringOps = config.filteringOps();
 		configOpenTabCondition = config.openTabCondition();
 		configDisplayPresetsPanel = config.displayPresetsPanel();
+		configReorderAntiDrag = config.reorderAntiDrag();
+		configForceHidePriority = config.forceHidePriority();
 	}
 
 	/**updates current preset if actives no longer contains it*/
@@ -365,7 +379,20 @@ public class SpellbookPresetsPlugin extends Plugin
 					clientToolbar.removeNavigation(navButton_panel);
 				}
 				break;
-
+			case REORDER_ANTI_DRAG_KEY:
+				configReorderAntiDrag = config.reorderAntiDrag();
+				if(reordering)
+				{
+					clientThread.invokeLater(this::redrawSpellbook);
+				}
+				break;
+			case FORCE_HIDE_PRIORITY_KEY:
+				configForceHidePriority = config.forceHidePriority();
+				if(reordering)
+				{
+					clientThread.invokeLater(this::redrawSpellbook);
+				}
+				break;
 		}
 
 	}
@@ -518,6 +545,7 @@ public class SpellbookPresetsPlugin extends Plugin
 		spellbooks = getSpellbooks(preset);
 		refreshReorderMenus();
 		configManager.setConfiguration(GROUP, CURRENT_PRESET_KEY, preset);
+		clientThread.invokeLater(this::cleanupSpellbook);
 		clientThread.invokeLater(this::reinitializeSpellbook);
 		requestMagicTabOpen(OPEN_TAB_CONDITION.LOAD_PRESET);
 	}
@@ -726,7 +754,7 @@ public class SpellbookPresetsPlugin extends Plugin
 			boolean hasAnyModifiedSpell = false;
 			for (SpellData spellData : book.values())
 			{
-				if(spellData.getHidden()){
+				if(spellData.isVisible()){
 					hasAnyModifiedSpell = true;
 					break;
 				}
@@ -745,25 +773,62 @@ public class SpellbookPresetsPlugin extends Plugin
 		{
 			ItemComposition spellObj = client.getItemDefinition(spellbookEnum.getIntValue(spells[i]));
 			Widget w = client.getWidget(spellObj.getIntValue(ParamID.SPELL_BUTTON));
-			boolean shown = isShown(spellbookEnumId, spellObj.getId());
+			int spellRenderType = getSpellRenderType(spellbookEnumId, spellObj.getId());
 
 			int widgetConfig = w.getClickMask();
 			if (reordering)
 			{
-				if (shown)
+				if(spellRenderType == SpellData.SPELL_SPACER)
 				{
 					clientThread.invokeLater(() ->
 					{
 						w.setOpacity(visibleOpacity);
 						w.setAction(HIDE_UNHIDE_OP, "Hide");
+
+						if(configForceHidePriority){
+							w.setTargetPriority(CCOP_PRIORITY);
+						} else {
+							w.setTargetPriority(ORIGINAL_PRIORITY);
+						}
+
+						w.setDragDeadTime(configReorderAntiDrag);
+						w.setBorderType(BORDER_WHITE);
 					});
 				}
-				else
+				else if (spellRenderType == SpellData.SPELL_VISIBLE)
+				{
+					clientThread.invokeLater(() ->
+					{
+						w.setOpacity(visibleOpacity);
+						w.setAction(HIDE_UNHIDE_OP, "Hide");
+
+						w.setAction(SPACER_OP, "Hide as spacer");
+
+						if(configForceHidePriority){
+							w.setTargetPriority(CCOP_PRIORITY);
+						} else {
+							w.setTargetPriority(ORIGINAL_PRIORITY);
+						}
+
+						w.setDragDeadTime(configReorderAntiDrag);
+					});
+				}
+				else if(spellRenderType == SpellData.SPELL_HIDDEN)
 				{
 					clientThread.invokeLater(() ->
 					{
 						w.setOpacity(hiddenOpacity);
 						w.setAction(HIDE_UNHIDE_OP, "Show");
+
+						w.setAction(SPACER_OP, "Hide as spacer");
+
+						if(configForceHidePriority){
+							w.setTargetPriority(CCOP_PRIORITY);
+						} else {
+							w.setTargetPriority(ORIGINAL_PRIORITY);
+						}
+
+						w.setDragDeadTime(configReorderAntiDrag);
 					});
 				}
 
@@ -772,13 +837,20 @@ public class SpellbookPresetsPlugin extends Plugin
 			}
 			else
 			{
-				if (shown)
+				if(spellRenderType == SpellData.SPELL_SPACER)
+				{
+					newSpells[numNewSpells++] = spells[i];
+					w.setHidden(true);
+				}
+				else if (spellRenderType == SpellData.SPELL_VISIBLE)
 				{
 					newSpells[numNewSpells++] = spells[i];
 					w.setOpacity(visibleOpacity);
 					w.setAction(HIDE_UNHIDE_OP, null);
+					w.setAction(SPACER_OP, null);
+					w.setTargetPriority(ORIGINAL_PRIORITY);
 				}
-				else
+				else if(spellRenderType == SpellData.SPELL_HIDDEN)
 				{
 					w.setHidden(true);
 				}
@@ -803,6 +875,46 @@ public class SpellbookPresetsPlugin extends Plugin
 
 		System.arraycopy(newSpells, 0, spells, 0, numNewSpells);
 		stack[size - 1] = numSpells = numNewSpells;
+	}
+
+	/**There are numerous types of specific spell ops that we don't need displayed, normal MES wouldn't be ideal here
+	 * If hovering over a spell in reorder mode, remove irrelevant entries to make hide/unhide left click and additionally simplfy the open menu.*/
+	@Subscribe
+	public void onPostMenuSort(PostMenuSort event) {
+
+		if(!reordering)
+			return;
+
+		if(!configForceHidePriority)
+			return;
+
+		MenuEntry[] entries = client.getMenuEntries();
+
+		List<MenuEntry> validEntryCollection = new ArrayList<>();
+
+		boolean changesMade = false;
+		boolean castable = false;
+		for(int i=0; i <entries.length; i++){
+			String option = entries[i].getOption();
+			if(option.equals("Cancel")){
+				validEntryCollection.add(entries[i]);
+				continue;
+			}
+			if(option.equals("Show") || option.equals("Hide") || option.equals("Hide as spacer")){
+				validEntryCollection.add(entries[i]);
+				changesMade = true;
+			}
+			if(option.equals("Cast") || option.equals("View")){
+				castable = true;
+			}
+		}
+		if(!castable)
+			return;
+
+		if(!changesMade)
+			return;
+
+		client.setMenuEntries(validEntryCollection.toArray(new MenuEntry[0]));
 	}
 
 	/**If theres a pending config change and user is about to rightclick the spellbook, instantly update the config and thus the options.
@@ -886,7 +998,8 @@ public class SpellbookPresetsPlugin extends Plugin
 					int subSpellbookId = client.getEnum(EnumID.SPELLBOOKS_SUB).getIntValue(client.getVarbitValue(VarbitID.SPELLBOOK));
 					int spellbookId = client.getEnum(subSpellbookId).getIntValue(client.getVarbitValue(VarbitID.SPELLBOOK_SUBLIST));
 
-					boolean shown = isShown(spellbookId, spellObjId);
+					//visibleOrSpacer
+					boolean shown = getSpellRenderType(spellbookId, spellObjId) >= 1;
 					shown = !shown;
 
 					log.debug("Changing {} to hidden: {}", s.getName(), shown);
@@ -894,6 +1007,35 @@ public class SpellbookPresetsPlugin extends Plugin
 
 					s.setOpacity(shown ? visibleOpacity : hiddenOpacity);
 					s.setAction(HIDE_UNHIDE_OP, shown ? "Hide" : "Show");
+
+					// clears border used for spacer
+					s.setBorderType(BORDER_NONE);
+
+					if(!shown){
+						s.setAction(SPACER_OP, "Hide as spacer");
+					}
+
+					return;
+				}
+
+				if (e.getOp() == SPACER_OP + 1)
+				{
+					Widget s = e.getSource();
+					// Spells can be shared between spellbooks, so we can't assume spellbookEnum is the current spellbook.
+					// from ~magic_spellbook_redraw
+					int subSpellbookId = client.getEnum(EnumID.SPELLBOOKS_SUB).getIntValue(client.getVarbitValue(VarbitID.SPELLBOOK));
+					int spellbookId = client.getEnum(subSpellbookId).getIntValue(client.getVarbitValue(VarbitID.SPELLBOOK_SUBLIST));
+
+
+					setSpacer(spellbookId, spellObjId);
+
+					// Renders a white border around the spell to indicate a difference between it simply being visible/hiddem, its hidden but as a spacer.
+					s.setBorderType(BORDER_WHITE);
+
+					s.setOpacity(visibleOpacity);
+					s.setAction(SPACER_OP, null);
+					s.setAction(HIDE_UNHIDE_OP, "Hide");
+					log.debug("Changing {} to spacer", s.getName());
 					return;
 				}
 
@@ -918,6 +1060,9 @@ public class SpellbookPresetsPlugin extends Plugin
 			if(w != null)
 			{
 				w.setAction(HIDE_UNHIDE_OP, null);
+				w.setAction(SPACER_OP,null);
+				w.setBorderType(BORDER_NONE);
+				w.setTargetPriority(ORIGINAL_PRIORITY);
 				w.setOpacity(visibleOpacity);
 			}
 		}
@@ -1070,7 +1215,7 @@ public class SpellbookPresetsPlugin extends Plugin
 	private void setHidden(int spellbookId, int spellId, boolean hidden) {
 		Map<Integer, SpellData> book = spellbooks.computeIfAbsent(spellbookId, k -> new HashMap<>());
 
-		SpellData spell = book.computeIfAbsent(spellId, k -> new SpellData(-1, false));
+		SpellData spell = book.computeIfAbsent(spellId, k -> new SpellData(-1, 0));
 		spell.setHidden(hidden);
 
 		if (spell.isUnused()) {
@@ -1078,11 +1223,19 @@ public class SpellbookPresetsPlugin extends Plugin
 		}
 	}
 
+	/**sets spelldata to be spacer, adds book of spellbookId to spellbooks if missing*/
+	private void setSpacer(int spellbookId, int spellId) {
+		Map<Integer, SpellData> book = spellbooks.computeIfAbsent(spellbookId, k -> new HashMap<>());
+
+		SpellData spell = book.computeIfAbsent(spellId, k -> new SpellData(-1, 0));
+		spell.setSpacer();
+	}
+
 	/**sets spelldata position, adds book of spellbookId to spellbooks if missing*/
 	private void setPosition(int spellbookId, int spellId, int position) {
 		Map<Integer, SpellData> book = spellbooks.computeIfAbsent(spellbookId, k -> new HashMap<>());
 
-		SpellData spell = book.computeIfAbsent(spellId, k -> new SpellData(-1, false));
+		SpellData spell = book.computeIfAbsent(spellId, k -> new SpellData(-1, 0));
 		spell.setPosition(position);
 
 		if (spell.isUnused()) {
@@ -1090,17 +1243,20 @@ public class SpellbookPresetsPlugin extends Plugin
 		}
 	}
 
-	/**indicates the spell in the current book should be visible (defaults to false if not present)*/
-	private boolean isShown(int spellbookId, int spellId) {
+	/**indicates the spell in the current book should be visible, a spacer or hidden (defaults to 0(hidden) if not present)
+	 * Spacer = 2 -- hidden but acts as if it were visible pushing other spells
+	 * Visible = 1 -- visible
+	 * Hidden = 0 -- not visible*/
+	private int getSpellRenderType(int spellbookId, int spellId) {
 		Map<Integer, SpellData> book = spellbooks.get(spellbookId);
 		if (book == null) {
-			return false;
+			return 0;
 		}
 		SpellData spell = book.get(spellId);
 		if (spell == null) {
-			return false;
+			return 0;
 		}
-		return spell.getHidden();
+		return spell.getSpellRenderType();
 	}
 
 	/**the position of the current spell if tracked. (defaults to -1 if not present)*/

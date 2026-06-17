@@ -29,6 +29,7 @@ import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
 import net.runelite.client.config.ConfigSection;
 import net.runelite.client.config.Keybind;
+import net.runelite.client.config.Range;
 
 import java.awt.*;
 import java.awt.event.KeyEvent;
@@ -57,6 +58,10 @@ public interface SpellbookPresetsConfig extends Config
 	String OPEN_TAB_CONDITION_KEY = "openTabCondition";
 
 	String DISPLAY_PRESETS_PANEL_KEY = "displayPresetsPanel";
+
+	String REORDER_ANTI_DRAG_KEY = "reorderAntiDrag";
+
+	String FORCE_HIDE_PRIORITY_KEY = "forceHidePriority";
 
 	//in the situation that our data formatting/saving/loading changes. the version allows us to know how to handle migration.
 	//for now it just gets set and exists.
@@ -136,6 +141,34 @@ public interface SpellbookPresetsConfig extends Config
 	default boolean displayPresetsPanel()
 	{
 		return true;
+	}
+
+	@ConfigItem(
+			position = 4,
+			keyName = REORDER_ANTI_DRAG_KEY,
+			name = "Reorder Anti-Drag",
+			description = "Delay in frames before held spells will let you drag them",
+			section = defaultPanel
+	)
+	@Range(
+			min = 0,
+			max = 30
+	)
+	default int reorderAntiDrag()
+	{
+		return 5;
+	}
+
+	@ConfigItem(
+			position = 5,
+			keyName = FORCE_HIDE_PRIORITY_KEY,
+			name = "Force Hide Priority",
+			description = "In redorder mode, the hide/show op will be left click and all other regular ops will be removed.",
+			section = defaultPanel
+	)
+	default boolean forceHidePriority()
+	{
+		return false;
 	}
 
 	@ConfigItem(
