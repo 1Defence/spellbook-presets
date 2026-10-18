@@ -1047,6 +1047,20 @@ public class SpellbookPresetsPlugin extends Plugin
 		}
 	}
 
+	public boolean SpellWidgetModified(Widget w){
+		if(w == null)
+			return false;
+		String[] actions = w.getActions();
+		if(actions == null)
+			return false;
+		int actionCount = actions.length;
+		if(actionCount > HIDE_UNHIDE_OP && actions[HIDE_UNHIDE_OP] !=  null)
+			return true;
+		if(actionCount > SPACER_OP && actions[SPACER_OP] != null)
+			return true;
+		return false;
+	}
+
 	/**for the given spellbook, remove hide/unhide op and reset the opacity of the spells*/
 	private void cleanupSpells(int spellbookEnum)
 	{
@@ -1057,13 +1071,17 @@ public class SpellbookPresetsPlugin extends Plugin
 			ItemComposition spellObj = client.getItemDefinition(spellObjId);
 			int spellComponent = spellObj.getIntValue(ParamID.SPELL_BUTTON);
 			Widget w = client.getWidget(spellComponent);
-			if(w != null)
+			if(SpellWidgetModified(w))
 			{
 				w.setAction(HIDE_UNHIDE_OP, null);
 				w.setAction(SPACER_OP,null);
 				w.setBorderType(BORDER_NONE);
 				w.setTargetPriority(ORIGINAL_PRIORITY);
 				w.setOpacity(visibleOpacity);
+
+				int widgetConfig = w.getClickMask();
+				widgetConfig &= ~(DRAG | DRAG_ON);
+				w.setClickMask(widgetConfig);
 			}
 		}
 	}
